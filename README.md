@@ -29,7 +29,7 @@ $ head -5 testfiles/100FIX42.dat
 8=FIX.4.29=035=D49=37750056=GPFI34=057=884652=20150406-12:17:2711=4345c1d4-1d6c-49ac-a002-6b13ad9ac44341=8b45585e-d957-44d7-87ab-f357814e2cf91=28924520355=AAPL48=46428843022=154=238=5380040=115=USD59=060=20150406-12:17:278201=1207=P10=0
 ```
 ```bash
-$ ./fix2json.js dict/FIX42.xml testfiles/100FIX42.dat | head -50
+$ fix2json.js dict/FIX42.xml testfiles/100FIX42.dat | head -50
 [
     {
         "8201": "1",
