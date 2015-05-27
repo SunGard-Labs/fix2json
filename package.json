@@ -1,0 +1,41 @@
+	{
+  "name": "fix2json",
+  "version": "0.1.0",
+  "description": "Command-line utility to present FIX protocol messages as JSON",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SunGard-Labs/fix2json"
+  },
+  "bin": {
+    "fix2json": "fix2json.js"
+  },
+  "author": "SunGard Consulting Services",
+  "contributors": [{
+  	"name": "Salvatore Sferrazza",
+  	"email": "salvatore.sferrazza@sungard.com"
+  }],  
+  "license": "MIT",
+  "preferGlobal": "true",
+  "dependencies": {
+    "underscore": "~1.7.0",
+    "xmldom": "~0.1.19",
+    "xpath": "~0.0.9",
+    "node-xml": "~1.0.2"
+  },
+  "keywords": [
+    "FIX",
+    "drop copy",
+    "message",
+    "parsing",
+    "data",
+    "conversion",
+    "JSON",
+    "FIX protocol"
+  ],
+  "main": "fix2json.js",
+  "analyze": true,
+  "devDependencies": {}
+}
