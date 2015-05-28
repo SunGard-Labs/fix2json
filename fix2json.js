@@ -69,7 +69,6 @@ function parseMessages(fixData) {
 		return undefined;
 	}		
 	
-	//messages = fixData.match(/[^0-9a-zA-Z:\s]*(.*?)[^0-9]10=\d\d\d.?/g);
 	var messages = fixData.split("\n");
 
 	if (messages === null) {
