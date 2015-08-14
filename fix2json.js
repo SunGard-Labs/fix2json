@@ -46,9 +46,11 @@ if (!process.argv[3]) {
 		if (key.length > 0) {
 		    var val = element[key];
 		    record[tag] = mnemonify(key, val);
-	   	    toJson.push(record);
 		}
 	    });
+	    if (Object.keys(record).length > 0) {
+		   toJson.push(record);
+	    }
 	});
 
 	console.log(JSON.stringify(toJson, undefined, 4));
@@ -76,7 +78,7 @@ function parseMessages(fixData) {
 		return undefined;
 	}	
 
-	var output = new Array(messages.length);
+	var output = new Array(messages.length - 1);
 	
 	for (var i = 0; i < messages.length; i++) {
 		output[i] = extractFields(messages[i], delim);
@@ -132,4 +134,22 @@ function readDataDictionary(fileLocation) {
 
 function mnemonify(tag, val) {
 	return tags[tag] ? (tags[tag].values ? (tags[tag].values[val] ? tags[tag].values[val] : val) : val) : val;
+}
+
+function parseMessage(fixMsg) {
+
+	var msg = extractFields(fixMsg, String.fromCharCode(01));
+	var keys = Object.keys(msg);
+	var record = {};	
+	
+	_.each(keys, function(key, keyIndex, keyList) { 
+		var tag = tags[key] ? tags[key].name : key;
+		if (key.length > 0) {
+			var val = element[key];
+			record[tag] = mnemonify(key, val);
+	   	}
+	});
+
+	return record;
+
 }
