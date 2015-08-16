@@ -8,16 +8,27 @@ var readline = require('readline');
 var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder();
 var delim = String.fromCharCode(01); // ASCII start-of-header
+var pretty = false;
 
 if (!process.argv[3]) {
 
-	console.error("Usage: fix2json <data dictionary xml file> <FIX message file>");
+	console.error("Usage: fix2json [-p] <data dictionary xml file> <FIX message file>");
 	process.exit(1);
 
 } else {
+	var dictname;	
+       	var filename;
+	var output;
 
-	var dictname = process.argv[2];    
-    	var filename = process.argv[3];	
+	if (process.argv[2] === '-p') {
+		pretty = true;
+		dictname = process.argv[3];
+		filename = process.argv[4];
+	} else {
+		dictname = process.argv[2];    
+    		filename = process.argv[3];	
+	}
+
 	var tags = {};
 
 	try {
@@ -44,7 +55,10 @@ if (!process.argv[3]) {
 				record[tag] = mnemonify(key, val);
 	   		}
 		});
-		console.log(decoder.write(JSON.stringify(record))); // JSON.stringify(record, undefined, 4) to pretty print
+		
+		output = pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
+
+		console.log(decoder.write(output));
 	});
 
 }
