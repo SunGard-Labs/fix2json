@@ -8,7 +8,9 @@ fix2json is a command-line utility to present FIX(TV) protocol message files as 
 Some scenarios where fix2json might be of use are:
 
 * Within the ingestion pipeline of trading venue drop copy files into ElasticSearch
+
 * Performing command-line ETL or manipulation of FIX data, often in concert with other CLI utilities such as jq or XMLStarlet
+
 * As a pre-processor for inserting FIX records into JSON-conformant NoSQL repositories, such as Google BigQuery or MongoDB. 
 
 The current level of fix2json semantic naivete is very high.  As such, users should consider ensuring the semantic validity of all FIX messages upstream.
