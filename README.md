@@ -23,15 +23,18 @@ npm install -g fix2json
 ```bash
 $ ./fix2json.js
 Usage: fix2json <data dictionary xml file> <FIX message file>
+
 $ du -hs MDFF_CME_20130714-20130715_7818_0
 2.2G      MDFF_CME_20130714-20130715_7818_0
-$ ./fix2json.js dict/FIX50SP2.xml MDFF_CME_20130714-20130715_7818_0 |head -6
+
+$ ./fix2json.js dict/FIX50SP2.xml MDFF_CME_20130714-20130715_7818_0 
 {"BodyLength":"3972","CheckSum":"117","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1950185","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"100696","SenderCompID":"CME","SendingTime":"20130715164359550","TradeDate":"20130715","RptSeq":"1603","SecurityDesc":"ESV3 P1220","NoMDEntries":"39","MDEntryType":"BID","MDEntryPx":"80","MDEntrySize":"980","MDEntryTime":"164359000","MDUpdateAction":"CHANGE","TradingSessionID":"HALFDAY","NumberOfOrders":"4","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
 {"BodyLength":"102","CheckSum":"001","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17554","MsgType":"SECURITYSTATUS","SecurityID":"102149","SenderCompID":"CME","SendingTime":"20130714180212729","TradeDate":"20130715","SecurityDesc":"ESZ3 C2050","HighPx":"9999900","LowPx":"5","ApplVerID":"FIX50SP2"}
 {"BodyLength":"5733","CheckSum":"062","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1041351","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"103998","SenderCompID":"CME","SendingTime":"20130715141815962","TradeDate":"20130715","RptSeq":"7443","SecurityDesc":"ESZ3 P1760","NoMDEntries":"57","MDEntryType":"OFFER","MDEntryPx":"11975","MDEntrySize":"25","MDEntryTime":"141815000","MDUpdateAction":"DELETE","TradingSessionID":"HALFDAY","NumberOfOrders":"1","MDPriceLevel":"2","ApplVerID":"FIX50SP2"}
 {"BodyLength":"4343","CheckSum":"005","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"2690379","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"117457","SenderCompID":"CME","SendingTime":"20130715193111628","TradeDate":"20130715","RptSeq":"543","SecurityDesc":"ESN3 C2125","NoMDEntries":"43","MDEntryType":"OFFER","MDEntryPx":"35","MDEntrySize":"325","MDEntryTime":"193111000","MDUpdateAction":"NEW","TradingSessionID":"HALFDAY","NumberOfOrders":"2","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
 {"BodyLength":"140","CheckSum":"193","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17557","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"102143","SenderCompID":"CME","SendingTime":"20130714180212777","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P0850","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"30","MDEntryTime":"180212000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
 {"BodyLength":"143","CheckSum":"122","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"19979","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"105756","SenderCompID":"CME","SendingTime":"20130714180226470","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P1745","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"10850","MDEntryTime":"180226000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
+...
 ```
 
 ## Caveats
