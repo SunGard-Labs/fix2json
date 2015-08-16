@@ -21,7 +21,7 @@ npm install -g fix2json
 
 ## Examples
 ```bash
-$ fix2json
+$ ./fix2json.js
 Usage: fix2json <data dictionary xml file> <FIX message file>
 $ du -hs MDFF_CME_20130714-20130715_7818_0
 2.2G      MDFF_CME_20130714-20130715_7818_0
