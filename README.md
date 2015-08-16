@@ -23,76 +23,23 @@ npm install -g fix2json
 ```bash
 $ fix2json
 Usage: fix2json <data dictionary xml file> <FIX message file>
+$ du -hs MDFF_CME_20130714-20130715_7818_0
+2.2G      MDFF_CME_20130714-20130715_7818_0
+$ ./fix2json.js dict/FIX50SP2.xml MDFF_CME_20130714-20130715_7818_0 |head -6
+{"BodyLength":"3972","CheckSum":"117","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1950185","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"100696","SenderCompID":"CME","SendingTime":"20130715164359550","TradeDate":"20130715","RptSeq":"1603","SecurityDesc":"ESV3 P1220","NoMDEntries":"39","MDEntryType":"BID","MDEntryPx":"80","MDEntrySize":"980","MDEntryTime":"164359000","MDUpdateAction":"CHANGE","TradingSessionID":"HALFDAY","NumberOfOrders":"4","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
+{"BodyLength":"102","CheckSum":"001","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17554","MsgType":"SECURITYSTATUS","SecurityID":"102149","SenderCompID":"CME","SendingTime":"20130714180212729","TradeDate":"20130715","SecurityDesc":"ESZ3 C2050","HighPx":"9999900","LowPx":"5","ApplVerID":"FIX50SP2"}
+{"BodyLength":"5733","CheckSum":"062","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1041351","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"103998","SenderCompID":"CME","SendingTime":"20130715141815962","TradeDate":"20130715","RptSeq":"7443","SecurityDesc":"ESZ3 P1760","NoMDEntries":"57","MDEntryType":"OFFER","MDEntryPx":"11975","MDEntrySize":"25","MDEntryTime":"141815000","MDUpdateAction":"DELETE","TradingSessionID":"HALFDAY","NumberOfOrders":"1","MDPriceLevel":"2","ApplVerID":"FIX50SP2"}
+{"BodyLength":"4343","CheckSum":"005","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"2690379","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"117457","SenderCompID":"CME","SendingTime":"20130715193111628","TradeDate":"20130715","RptSeq":"543","SecurityDesc":"ESN3 C2125","NoMDEntries":"43","MDEntryType":"OFFER","MDEntryPx":"35","MDEntrySize":"325","MDEntryTime":"193111000","MDUpdateAction":"NEW","TradingSessionID":"HALFDAY","NumberOfOrders":"2","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
+{"BodyLength":"140","CheckSum":"193","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17557","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"102143","SenderCompID":"CME","SendingTime":"20130714180212777","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P0850","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"30","MDEntryTime":"180212000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
+{"BodyLength":"143","CheckSum":"122","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"19979","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"105756","SenderCompID":"CME","SendingTime":"20130714180226470","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P1745","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"10850","MDEntryTime":"180226000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
 ```
-
-```bash
-$ head -5 /usr/local/lib/node_modules/fix2json/dict/testfiles/100FIX42.dat 
-8=FIX.4.29=035=D49=83019956=AZKJ34=057=362052=20150406-12:17:2711=0c968e69-c3ff-4f9f-bc66-9e5ebccd980741=e0568b5c-8bb1-41f0-97bf-5eed32828c241=90964630055=SJM48=46428843022=154=138=7570040=115=USD59=060=20150406-12:17:278201=1207=P10=0
-8=FIX.4.29=035=D49=AZKJ56=JGEB34=150=362057=946152=20150406-12:17:2711=3a074d1d-fb06-4eb0-b2f8-0912c5735f65109=8301991=90964630055=SJM48=46428843022=154=138=7570040=115=USD59=08011=0c968e69-c3ff-4f9f-bc66-9e5ebccd980760=20150406-12:17:278201=3207=P10=0
-8=FIX.4.29=035=D49=AZKJ56=JGEB34=250=362057=946152=20150406-12:17:2711=3a074d1d-fb06-4eb0-b2f8-0912c5735f6541=335844d8-fc05-41d9-825b-6f3a5059a29b109=8301991=AZKJ90964630055=SJM48=46428843022=154=138=7570040=115=USD59=060=20150406-12:17:278201=1207=P10=0
-8=FIX.4.29=035=849=AZKJ56=JGEB34=350=362057=946152=20150406-12:17:2711=3a074d1d-fb06-4eb0-b2f8-0912c5735f6537=ebf9c385-96c6-4e26-9e76-6dc79028a81641=335844d8-fc05-41d9-825b-6f3a5059a29b109=83019976=83019917=f2745db7-77c7-4953-ae77-a69dc81e805a20=039=21=AZKJ90964630055=SJM48=46428843022=154=138=7570040=159=032=7570031=48.14100030=O29=114=757006=$235.0075=20150406-12:17:2760=20150406-12:17:27150=2151=08201=1207=P10=0
-8=FIX.4.29=035=D49=37750056=GPFI34=057=884652=20150406-12:17:2711=4345c1d4-1d6c-49ac-a002-6b13ad9ac44341=8b45585e-d957-44d7-87ab-f357814e2cf91=28924520355=AAPL48=46428843022=154=238=5380040=115=USD59=060=20150406-12:17:278201=1207=P10=0
-```
-```bash
-$ fix2json.js /usr/local/lib/node_modules/fix2json/dict/FIX42.xml /usr/local/lib/node_modules/fix2json/dict/testfiles/100FIX42.dat | head -50
-[
-    {
-        "8201": "1",
-        "Account": "909646300",
-        "BeginString": "FIX.4.2",
-        "BodyLength": "0",
-        "CheckSum": "0",
-        "ClOrdID": "0c968e69-c3ff-4f9f-bc66-9e5ebccd9807",
-        "Currency": "USD",
-        "IDSource": "CUSIP",
-        "MsgSeqNum": "0",
-        "MsgType": "ORDER SINGLE",
-        "OrderQty": "75700",
-        "OrdType": "MARKET",
-        "OrigClOrdID": "e0568b5c-8bb1-41f0-97bf-5eed32828c24",
-        "SecurityID": "464288430",
-        "SenderCompID": "830199",
-        "SendingTime": "20150406-12:17:27",
-        "Side": "BUY",
-        "Symbol": "SJM",
-        "TargetCompID": "AZKJ",
-        "TargetSubID": "3620",
-        "TimeInForce": "DAY",
-        "TransactTime": "20150406-12:17:27",
-        "SecurityExchange": "P"
-    },
-    {
-        "8201": "1",
-        "Account": "909646300",
-        "BeginString": "FIX.4.2",
-        "BodyLength": "0",
-        "CheckSum": "0",
-        "ClOrdID": "0c968e69-c3ff-4f9f-bc66-9e5ebccd9807",
-        "Currency": "USD",
-        "IDSource": "CUSIP",
-        "MsgSeqNum": "0",
-        "MsgType": "ORDER SINGLE",
-        "OrderQty": "75700",
-        "OrdType": "MARKET",
-        "OrigClOrdID": "e0568b5c-8bb1-41f0-97bf-5eed32828c24",
-        "SecurityID": "464288430",
-        "SenderCompID": "830199",
-        "SendingTime": "20150406-12:17:27",
-        "Side": "BUY",
-        "Symbol": "SJM",
-        "TargetCompID": "AZKJ",
-        "TargetSubID": "3620",
-        "TimeInForce": "DAY",
-        "TransactTime": "20150406-12:17:27",
-        "SecurityExchange": "P"
-...
-```
-
 
 ## Caveats
 
 * fix2json makes no semantic judgements about the FIX data being processed and blindly applies the specified data dictionary to the input FIX file.  Feedback from the community on an appropriate level of validation is welcomed.
-* fix2json runs out of memory if the provided input file is larger than a certain size.  There are several architectural implications to addressing this issue.  Input is sought from the community as to how this impacts usability of the tool in practice.
+
+* fix2json now uses streams instead of loading up the entire source file in one go.  This means that you can process a 2G+ file starting immediately.  What this also means is that fix2json no longer returns a proper JSON array as it's output.  Individual JSON objects will be output that correspond to the individual messages in the source file.  For this reason, pretty printing has been disabled as well.  This can be added as a CLI option at some point.
+
 * fix2json will replace underscores ('_') with spaces (' ') for all mnemonic tag descriptions found in the input data dictionary.  Hence, a description for EventType will be in the data dictionary as "LAST_ELIGIBLE_TRADE_DATE", but will be interpreted by fix2json as "LAST ELIGIBLE TRADE DATE"
 
 ## See Also
