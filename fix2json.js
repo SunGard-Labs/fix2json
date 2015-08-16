@@ -1,10 +1,13 @@
 #! /usr/bin/env node
 
-var fs = require('fs');
+var fs = require('fs')
 var _ = require('underscore');
 var xpath = require('xpath');
 var DOMParser = require('xmldom').DOMParser;
-var delim = String.fromCharCode(01); // ^A, accept alternatives from command line ("|")?
+var readline = require('readline');
+var StringDecoder = require('string_decoder').StringDecoder;
+var decoder = new StringDecoder();
+var delim = String.fromCharCode(01); // ASCII start-of-header
 
 if (!process.argv[3]) {
 
@@ -13,14 +16,9 @@ if (!process.argv[3]) {
 
 } else {
 
-    var dictname = process.argv[2];    
-    var filename = process.argv[3];	
-
-    if (fs.existsSync(filename)) {
-	
+	var dictname = process.argv[2];    
+    	var filename = process.argv[3];	
 	var tags = {};
-	var rawFix = "";
-	var toJson = [];
 
 	try {
 		tags = readDataDictionary(dictname);
@@ -29,65 +27,29 @@ if (!process.argv[3]) {
 		process.exit(1);
 	}
 
-	try {
-		 rawFix = fs.readFileSync(filename);
-	} catch (messageException) {
-		console.error("Could not read " + filename + ", error: " + messageException);
-		process.exit(1);
-	}	
-
-	var parsed = parseMessages(rawFix.toString());
-
-	_.each(parsed, function (element, index, list) {
-	    var record = {};
-	    var keys = Object.keys(element);
-	    _.each(keys, function(key, keyIndex, keyList) { 
-		var tag = tags[key] ? tags[key].name : key;
-		if (key.length > 0) {
-		    var val = element[key];
-		    record[tag] = mnemonify(key, val);
-		}
-	    });
-	    if (Object.keys(record).length > 0) {
-		   toJson.push(record);
-	    }
+	var rd = readline.createInterface({
+		input: fs.createReadStream(filename),
+		output: process.stdout,
+		terminal: false
 	});
 
-	console.log(JSON.stringify(toJson, undefined, 4));
-	process.exit(0);
+	rd.on('line', function(line) {
+		var msg = extractFields(line);
+		var keys = Object.keys(msg);
+		var record = {};	
+		_.each(keys, function(key, keyIndex, keyList) { 
+			var tag = tags[key] ? tags[key].name : key;
+			if (key.length > 0) {
+				var val = msg[key];
+				record[tag] = mnemonify(key, val);
+	   		}
+		});
+		console.log(decoder.write(JSON.stringify(record))); // JSON.stringify(record, undefined, 4) to pretty print
+	});
 
-    } else {
-
-	console.error("Could not open input file " + filename + " for reading, file not found.");
-	process.exit(1);
-
-    }
 }
 
-function parseMessages(fixData) {
-
-	if (fixData.length === 0) {
-		console.error("Input to parseMessages was empty!");
-		return undefined;
-	}		
-	
-	var messages = fixData.split("\n");
-
-	if (messages === null) {
-		console.error("No messages found in file!");
-		return undefined;
-	}	
-
-	var output = new Array(messages.length - 1);
-	
-	for (var i = 0; i < messages.length; i++) {
-		output[i] = extractFields(messages[i], delim);
-	}	
-
-	return output;
-}
-
-function extractFields(record, delim) {
+function extractFields(record) {
 
     var field = {};
 
@@ -95,11 +57,15 @@ function extractFields(record, delim) {
 
     for (var i = 0; i < fields.length; i++) {
         var both = fields[i].split('=');
-        field[both[0]] = both[1];
+        field[both[0].replace("\n", '').replace("\r", '')] = both[1];
     }
 
     return field;
 
+}
+
+function mnemonify(tag, val) {
+	return tags[tag] ? (tags[tag].values ? (tags[tag].values[val] ? tags[tag].values[val] : val) : val) : val;
 }
 
 function readDataDictionary(fileLocation) {
@@ -132,24 +98,4 @@ function readDataDictionary(fileLocation) {
 
 }
 
-function mnemonify(tag, val) {
-	return tags[tag] ? (tags[tag].values ? (tags[tag].values[val] ? tags[tag].values[val] : val) : val) : val;
-}
 
-function parseMessage(fixMsg) {
-
-	var msg = extractFields(fixMsg, String.fromCharCode(01));
-	var keys = Object.keys(msg);
-	var record = {};	
-	
-	_.each(keys, function(key, keyIndex, keyList) { 
-		var tag = tags[key] ? tags[key].name : key;
-		if (key.length > 0) {
-			var val = element[key];
-			record[tag] = mnemonify(key, val);
-	   	}
-	});
-
-	return record;
-
-}
