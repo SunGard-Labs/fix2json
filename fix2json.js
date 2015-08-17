@@ -11,11 +11,11 @@ var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
 
 if (!process.argv[3]) {
-
 	console.error("Usage: fix2json [-p] <data dictionary xml file> <FIX message file>");
 	process.exit(1);
 
 } else {
+
 	var dictname;	
        	var filename;
 	var output;
@@ -54,10 +54,8 @@ if (!process.argv[3]) {
 				var val = msg[key];
 				record[tag] = mnemonify(key, val);
 	   		}
-		});
-		
+		});		
 		output = pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
-
 		console.log(decoder.write(output));
 	});
 
@@ -65,16 +63,15 @@ if (!process.argv[3]) {
 
 function extractFields(record) {
 
-    var field = {};
+	var field = {};
+	var fields = record.split(delim);
 
-    var fields = record.split(delim);
-
-    for (var i = 0; i < fields.length; i++) {
-        var both = fields[i].split('=');
-        field[both[0].replace("\n", '').replace("\r", '')] = both[1];
-    }
-
-    return field;
+	for (var i = 0; i < fields.length; i++) {
+        	var both = fields[i].split('=');
+        	field[both[0].replace("\n", '').replace("\r", '')] = both[1];
+    	}
+		
+	return field;
 
 }
 
