@@ -13,7 +13,6 @@ var pretty = false;
 if (!process.argv[3]) {
 	console.error("Usage: fix2json [-p] <data dictionary xml file> <FIX message file>");
 	process.exit(1);
-
 } else {
 
 	var dictname;	
@@ -40,7 +39,6 @@ if (!process.argv[3]) {
 
 	var rd = readline.createInterface({
 		input: fs.createReadStream(filename),
-		output: process.stdout,
 		terminal: false
 	});
 
@@ -49,8 +47,8 @@ if (!process.argv[3]) {
 		var keys = Object.keys(msg);
 		var record = {};	
 		_.each(keys, function(key, keyIndex, keyList) { 
-			var tag = tags[key] ? tags[key].name : key;
 			if (key.length > 0) {
+				var tag = tags[key] ? tags[key].name : key;
 				var val = msg[key];
 				record[tag] = mnemonify(key, val);
 	   		}
