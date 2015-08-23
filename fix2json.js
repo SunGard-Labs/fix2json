@@ -97,6 +97,7 @@ function checkParams() {
 
     if (process.argv.length < 3) {
 	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
+	console.error("\nfix2json will use standard input in the absence of a message file.");
 	process.exit(1);
     } else if (process.argv.length === 3) {
 	dictname = process.argv[2];
