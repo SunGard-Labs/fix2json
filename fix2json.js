@@ -23,7 +23,7 @@ try {
 	process.exit(1);
 }
 
-var input = filename ? fs.createReadStrean(filename) : process.stdin;
+var input = filename ? fs.createReadStream(filename) : process.stdin;
 
 rd = readline.createInterface({
 	input: input,
