@@ -11,7 +11,6 @@ var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
 var dictname;	
 var filename;
-var output;
 var tags = {};
 var rd = {};
 
@@ -24,21 +23,17 @@ try {
 	process.exit(1);
 }
 
-if (filename) {
-    rd = readline.createInterface({
-	    input: fs.createReadStream(filename),
-    });
-    rd.on('line', function(line) {
-	    console.log(decoder.write(processLine(line)));
-    });
-} else {
-    rd = readline.createInterface({
-	    input: process.stdin,
-    });
-    rd.on('line', function(line) {
-	    console.log(decoder.write(processLine(line)));
-    });
-}
+var input = filename ? fs.createReadStrean(filename) : process.stdin;
+
+rd = readline.createInterface({
+	input: input,
+	output: process.stdout,
+	terminal: false
+});
+
+rd.on('line', function(line) {
+	console.log(decoder.write(processLine(line)));
+});
 
 function processLine(line) {
 	var msg = extractFields(line);
