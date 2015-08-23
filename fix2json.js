@@ -9,68 +9,59 @@ var StringDecoder = require('string_decoder').StringDecoder;
 var decoder = new StringDecoder();
 var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
+var dictname;	
+var filename;
+var output;
+var tags = {};
+var rd = {};
 
-if (!process.argv[3]) {
-	console.error("Usage: fix2json [-p] <data dictionary xml file> <FIX message file>");
+checkParams();
+
+try {
+	tags = readDataDictionary(dictname);
+} catch(dictionaryException) {
+	console.error("Could not read dictionary file " + dictname + ", error: " + dictionaryException);
 	process.exit(1);
+}
+
+if (filename) {
+    rd = readline.createInterface({
+	    input: fs.createReadStream(filename),
+    });
+    rd.on('line', function(line) {
+	    console.log(decoder.write(processLine(line)));
+    });
 } else {
+    rd = readline.createInterface({
+	    input: process.stdin,
+    });
+    rd.on('line', function(line) {
+	    console.log(decoder.write(processLine(line)));
+    });
+}
 
-	var dictname;	
-       	var filename;
-	var output;
-
-	if (process.argv[2] === '-p') {
-		pretty = true;
-		dictname = process.argv[3];
-		filename = process.argv[4];
-	} else {
-		dictname = process.argv[2];    
-    		filename = process.argv[3];	
-	}
-
-	var tags = {};
-
-	try {
-		tags = readDataDictionary(dictname);
-	} catch(dictionaryException) {
-		console.error("Could not read dictionary file " + dictname + ", error: " + dictionaryException);
-		process.exit(1);
-	}
-
-	var rd = readline.createInterface({
-		input: fs.createReadStream(filename),
-		terminal: false
-	});
-
-	rd.on('line', function(line) {
-		var msg = extractFields(line);
-		var keys = Object.keys(msg);
-		var record = {};	
-		_.each(keys, function(key, keyIndex, keyList) { 
-			if (key.length > 0) {
-				var tag = tags[key] ? tags[key].name : key;
-				var val = msg[key];
-				record[tag] = mnemonify(key, val);
-	   		}
-		});		
-		output = pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
-		console.log(decoder.write(output));
-	});
-
+function processLine(line) {
+	var msg = extractFields(line);
+	var keys = Object.keys(msg);
+	var record = {};	
+	_.each(keys, function(key, keyIndex, keyList) { 
+		if (key.length > 0) {
+			var tag = tags[key] ? tags[key].name : key;
+			var val = msg[key];
+			record[tag] = mnemonify(key, val);
+   		}
+	});		
+        return pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
 }
 
 function extractFields(record) {
-
 	var field = {};
 	var fields = record.split(delim);
-
 	for (var i = 0; i < fields.length; i++) {
         	var both = fields[i].split('=');
         	field[both[0].replace("\n", '').replace("\r", '')] = both[1];
     	}
-		
 	return field;
-
 }
 
 function mnemonify(tag, val) {
@@ -107,4 +98,25 @@ function readDataDictionary(fileLocation) {
 
 }
 
+function checkParams() {
 
+    if (process.argv.length < 3) {
+	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
+	process.exit(1);
+    } else if (process.argv.length === 3) {
+	dictname = process.argv[2];
+    } else if (process.argv.length === 4) {
+	if (process.argv[2] === '-p') {
+	    pretty = true;
+	    dictname = process.argv[3];
+	} else {
+	    dictname = process.argv[2];
+	    filename = process.argv[3];
+	}
+    } else if (process.argv.length === 5) {
+	pretty = true;
+	dictname = process.argv[3];
+	filename = process.argv[4];
+    }
+
+}
