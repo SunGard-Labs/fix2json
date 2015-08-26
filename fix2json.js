@@ -1,7 +1,6 @@
 #! /usr/bin/env node
 
 var fs = require('fs')
-var _ = require('underscore');
 var xpath = require('xpath');
 var DOMParser = require('xmldom').DOMParser;
 var readline = require('readline');
@@ -39,13 +38,14 @@ function processLine(line) {
 	var msg = extractFields(line);
 	var keys = Object.keys(msg);
 	var record = {};	
-	_.each(keys, function(key, keyIndex, keyList) { 
+	for (var i = 0; i < keys.length; i++) {
+		var key = keys[i];
 		if (key.length > 0) {
 			var tag = tags[key] ? tags[key].name : key;
 			var val = msg[key];
 			record[tag] = mnemonify(key, val);
    		}
-	});		
+	}
         return pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
 }
 
