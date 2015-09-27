@@ -44,23 +44,6 @@ function extractGroups(fields, targetObject) {
 		}
 	}
 }
-
-function objectify(tagArray, targetObject) {
-	// iterate through fields
-	// if it's not a group start (No*)
-	// 		add to targetObject
-	for (var i = 0; i < tagArray.length; i++) {
-		if (!_.contains(groups, tagArray[i].tag)) {
-			targetObject[tagArray[i].tag] = tagArray[i].val;		
-		} else {
-			// SEEK TO END OF THIS GROUP
-			// subtract from tagArray
-			var memberCount = tagArray[i].val;
-			
-			objectify(tagArray.slice(findLastIndex(tagArray, groupName)), targetObject);
-		}
-	}	
-}
 	
 function pluckGroup(tagArray, groupName) {
 	var firstMember;
