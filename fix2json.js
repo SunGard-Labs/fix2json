@@ -2,6 +2,7 @@
 
 var fs = require('fs')
 var xpath = require('xpath');
+var _ = require('underscore');
 var DOMParser = require('xmldom').DOMParser;
 var readline = require('readline');
 var StringDecoder = require('string_decoder').StringDecoder;
@@ -10,13 +11,14 @@ var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
 var dictname;	
 var filename;
-var tags = {};
+var TAGS = {};
+var GROUPS = {};
 var rd = {};
 
 checkParams();
 
 try {
-	tags = readDataDictionary(dictname);
+	readDataDictionary(dictname);
 } catch(dictionaryException) {
 	console.error("Could not read dictionary file " + dictname + ", error: " + dictionaryException);
 	process.exit(1);
@@ -34,33 +36,117 @@ rd.on('line', function(line) {
 	console.log(decoder.write(processLine(line)));
 });
 
-function processLine(line) {
-	var msg = extractFields(line);
-	var keys = Object.keys(msg);
-	var record = {};	
-	for (var i = 0; i < keys.length; i++) {
-		var key = keys[i];
-		if (key.length > 0) {
-			var tag = tags[key] ? tags[key].name : key;
-			var val = msg[key];
-			record[tag] = mnemonify(key, val);
-   		}
+function extractGroups(fields, targetObject) {
+	var groupStartIndex = [];
+	for (var i = 0; i < fields.length; i++) {
+		if (_.contains(GROUPS, fields[i].tag)) {
+			targetObject[fields[i].tag.substring('No'.length)] = pluckGroup(fields.slice(i), fields[i].tag);
+		}
 	}
-        return pretty ? JSON.stringify(record, undefined, 4) : JSON.stringify(record);
+}
+
+function objectify(tagArray, targetObject) {
+	// iterate through fields
+	// if it's not a group start (No*)
+	// 		add to targetObject
+	for (var i = 0; i < tagArray.length; i++) {
+		if (!_.contains(groups, tagArray[i].tag)) {
+			targetObject[tagArray[i].tag] = tagArray[i].val;		
+		} else {
+			// SEEK TO END OF THIS GROUP
+			// subtract from tagArray
+			var memberCount = tagArray[i].val;
+			
+			objectify(tagArray.slice(findLastIndex(tagArray, groupName)), targetObject);
+		}
+	}	
+}
+	
+function pluckGroup(tagArray, groupName) {
+	var firstMember;
+	var seenMembers = [];
+	var groupCount;
+	var foundGroups = [];
+	var group = {};			
+	for (var i = 0; i < tagArray.length; i++) {
+		var key = tagArray[i].tag;
+		var val = tagArray[i].val;				
+		if (i === 0) {
+			groupCount = val;
+		} else if (_.contains(GROUPS, key)) {
+			foundGroups[key.substring('No'.length)] = pluckGroup(tagArray.slice(i), key);
+		} else if (i === 1) {
+			firstMember = key;
+			seenMembers.push(key);
+			group[key] = val;
+		} else if (key !== firstMember && !_.contains(seenMembers, key)) {
+			seenMembers.push(key);
+			group[key] = val;
+		} else if (key === firstMember && i > 1) {
+			foundGroups.push(group);
+			group = {};
+ 			seenMembers = [];
+		} else {
+			break;
+		}
+	}
+
+	return foundGroups;
+}
+
+function resolveFields(fieldArray, targetObj) {
+	for (var i = 0; i < fieldArray.length; i++) {
+		if (_.contains(GROUPS, fieldArray[i].tag)) {
+			var groupPropertyName = fieldArray[i].tag.substring('No'.length);
+			targetObj[groupPropertyName] = pluckGroup(fieldArray.slice(i), fieldArray[i].tag);
+		} else {
+			targetObj[fieldArray[i].tag] = fieldArray[i].val;
+		}		
+	}	
+}
+
+function processLine(line) {
+	var targetObj = {};
+	resolveFields(extractFields(line), targetObj);
+	
+	return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
 }
 
 function extractFields(record) {
-	var field = {};
+	var fieldArray = [];
 	var fields = record.split(delim);
 	for (var i = 0; i < fields.length; i++) {
-        	var both = fields[i].split('=');
-        	field[both[0].replace("\n", '').replace("\r", '')] = both[1];
-    	}
-	return field;
+    	var both = fields[i].split('=');
+		both[0].replace("\n", '').replace("\r", '');
+		if (both[1] !== undefined) {
+			var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
+			var val = mnemonify(tag, both[1]);
+			fieldArray.push({
+				tag: tag, 
+				val: val
+			});
+		}	
+	}
+	return fieldArray;
 }
 
 function mnemonify(tag, val) {
-	return tags[tag] ? (tags[tag].values ? (tags[tag].values[val] ? tags[tag].values[val] : val) : val) : val;
+	return TAGS[tag] ? (TAGS[tag].values ? (TAGS[tag].values[val] ? TAGS[tag].values[val] : val) : val) : val;
+}
+
+function dictionaryGroups(dom) {
+	
+	// TODO: xpath depends on dictionary version, maybe auto-detect version then come back to dictionary file?
+   
+	//var grps = xpath.select("//fix/messages/message/group/@name", dom); // 4.2
+	var grps = xpath.select("//fix/components/component/group/@name", dom); // 5.0SP2
+
+	var groupTags = [];	
+	for (var i = 0; i < grps.length; i++) {
+		groupTags.push(grps[i].value);
+	}
+	return _.uniq(groupTags);	
+
 }
 
 function readDataDictionary(fileLocation) {
@@ -68,7 +154,6 @@ function readDataDictionary(fileLocation) {
 	var xml = fs.readFileSync(fileLocation).toString();
 	var dom = new DOMParser().parseFromString(xml);
 	var nodes = xpath.select("//fix/fields/field", dom);
-	var dictionary = {};
 	
 	for (var i = 0; i < nodes.length; i++) {
 
@@ -82,19 +167,18 @@ function readDataDictionary(fileLocation) {
 			values[valElem[j].attributes[0].value] = valElem[j].attributes[1].value.replace(/_/g, ' ');
 		}
 
-		dictionary[tagNumber] = {
+		TAGS[tagNumber] = {
 			name: tagName,
 			values: values
 		};
 
 	}
-	
-	return dictionary;
+
+	GROUPS = dictionaryGroups(dom);
 
 }
 
 function checkParams() {
-
     if (process.argv.length < 3) {
 	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
 	console.error("\nfix2json will use standard input in the absence of a message file.");
@@ -114,5 +198,4 @@ function checkParams() {
 	dictname = process.argv[3];
 	filename = process.argv[4];
     }
-
 }
