@@ -37,7 +37,6 @@ rd.on('line', function(line) {
 });
 
 function extractGroups(fields, targetObject) {
-	var groupStartIndex = [];
 	for (var i = 0; i < fields.length; i++) {
 		if (_.contains(GROUPS, fields[i].tag)) {
 			targetObject[fields[i].tag.substring('No'.length)] = pluckGroup(fields.slice(i), fields[i].tag);
@@ -61,10 +60,8 @@ function pluckGroup(tagArray, groupName) {
 		} else if (i === 1) {
 			firstMember = key;
 			seenMembers.push(key);
-			group[key] = val;
 		} else if (key !== firstMember && !_.contains(seenMembers, key)) {
 			seenMembers.push(key);
-			group[key] = val;
 		} else if (key === firstMember && i > 1) {
 			foundGroups.push(group);
 			group = {};
@@ -72,8 +69,11 @@ function pluckGroup(tagArray, groupName) {
 		} else {
 			break;
 		}
+	
+		if (i > 0) { 
+			group[key] = val;
+		}
 	}
-
 	return foundGroups;
 }
 
@@ -91,7 +91,6 @@ function resolveFields(fieldArray, targetObj) {
 function processLine(line) {
 	var targetObj = {};
 	resolveFields(extractFields(line), targetObj);
-	
 	return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
 }
 
@@ -118,9 +117,8 @@ function mnemonify(tag, val) {
 }
 
 function dictionaryGroups(dom) {
-	
 	// TODO: xpath depends on dictionary version, maybe auto-detect version then come back to dictionary file?
-   
+
 	//var grps = xpath.select("//fix/messages/message/group/@name", dom); // 4.2
 	var grps = xpath.select("//fix/components/component/group/@name", dom); // 5.0SP2
 
@@ -129,7 +127,6 @@ function dictionaryGroups(dom) {
 		groupTags.push(grps[i].value);
 	}
 	return _.uniq(groupTags);	
-
 }
 
 function readDataDictionary(fileLocation) {
@@ -139,7 +136,6 @@ function readDataDictionary(fileLocation) {
 	var nodes = xpath.select("//fix/fields/field", dom);
 	
 	for (var i = 0; i < nodes.length; i++) {
-
 		var tagNumber = nodes[i].attributes[0].value
 		var tagName = nodes[i].attributes[1].value;
 	
@@ -154,7 +150,6 @@ function readDataDictionary(fileLocation) {
 			name: tagName,
 			values: values
 		};
-
 	}
 
 	GROUPS = dictionaryGroups(dom);
