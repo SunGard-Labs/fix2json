@@ -13,9 +13,18 @@ var dictname;
 var filename;
 var TAGS = {};
 var GROUPS = {};
+var FIX_VER = undefined;
 var rd = {};
 
 checkParams();
+
+// establish Xpaths for the requisite data dictionary version
+var groupXPath = {};
+groupXPath['5.0.2'] = '//fix/components/component/group';
+groupXPath['5.0.1'] = '//fix/components/component/group';
+groupXPath['5.0.0'] = '//fix/components/component/group';
+groupXPath['4.2.0'] = '//fix/messages/message/group';;
+groupXPath['4.4.0'] = '//fix/messages/message/group';
 
 try {
 	readDataDictionary(dictname);
@@ -35,62 +44,65 @@ rd = readline.createInterface({
 rd.on('line', function(line) {
 	console.log(decoder.write(processLine(line)));
 });
-
-function extractGroups(fields, targetObject) {
-	for (var i = 0; i < fields.length; i++) {
-		if (_.contains(GROUPS, fields[i].tag)) {
-			targetObject[fields[i].tag.substring('No'.length)] = pluckGroup(fields.slice(i), fields[i].tag);
-		}
-	}
-}
 	
 function pluckGroup(tagArray, groupName) {
-	var firstMember;
-	var seenMembers = [];
-	var groupCount;
-	var foundGroups = [];
-	var group = {};			
+
+	var group = [];
+	var member = {};			
+	var firstProp = undefined;
+
+	var numInGroup = tagArray.shift();
+	var groupName = numInGroup.tag;
+	var groupSize = numInGroup.val;
+
 	for (var i = 0; i < tagArray.length; i++) {
+
 		var key = tagArray[i].tag;
 		var val = tagArray[i].val;				
+
 		if (i === 0) {
-			groupCount = val;
-		} else if (_.contains(GROUPS, key)) {
-			foundGroups[key.substring('No'.length)] = pluckGroup(tagArray.slice(i), key);
-		} else if (i === 1) {
-			firstMember = key;
-			seenMembers.push(key);
-		} else if (key !== firstMember && !_.contains(seenMembers, key)) {
-			seenMembers.push(key);
-		} else if (key === firstMember && i > 1) {
-			foundGroups.push(group);
-			group = {};
- 			seenMembers = [];
+			firstProp = key;
+			member[key] = val;
+		} else if (_.contains(Object.keys(GROUPS), key)) {
+			var newGroup = pluckGroup(tagArray.slice(i), key);
+			var numToSkip = Object.keys(newGroup[0]).length;
+		 	member[key.substring('No'.length)] = newGroup;
+			i = i + (numToSkip * groupSize) ; // skip a group's worth of tags
+		} else if (key === firstProp && i > 0) {
+			group.push(JSON.parse(JSON.stringify(member)));
+			member = {};
+			member[key] = val;
+		} else if (!_.contains(GROUPS[groupName], key)) {
+				group.push(JSON.parse(JSON.stringify(member)));
+				return group;
 		} else {
-			break;
+			member[key] = val;
 		}
-	
-		if (i > 0) { 
-			group[key] = val;
-		}
+
 	}
-	return foundGroups;
+
 }
 
-function resolveFields(fieldArray, targetObj) {
+function resolveFields(fieldArray) {
+
+	targetObj = {};
+	var group = [];
+	var origLen = fieldArray.length;	
 	for (var i = 0; i < fieldArray.length; i++) {
-		if (_.contains(GROUPS, fieldArray[i].tag)) {
+		targetObj[fieldArray[i].tag] = fieldArray[i].val;
+		if (_.contains(Object.keys(GROUPS), fieldArray[i].tag)) {
 			var groupPropertyName = fieldArray[i].tag.substring('No'.length);
-			targetObj[groupPropertyName] = pluckGroup(fieldArray.slice(i), fieldArray[i].tag);
-		} else {
-			targetObj[fieldArray[i].tag] = fieldArray[i].val;
-		}		
+			var group = pluckGroup(fieldArray.slice(i), fieldArray[i].tag);
+			targetObj[groupPropertyName] = group;
+			var numToSkip = Object.keys(group[0]).length * fieldArray[i].val;
+			i = i + (numToSkip * fieldArray[i].val) ; // skip a group member's worth of tags
+		} 
 	}	
+	return targetObj;
 }
 
 function processLine(line) {
-	var targetObj = {};
-	resolveFields(extractFields(line), targetObj);
+	var targetObj = resolveFields(extractFields(line));
 	return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
 }
 
@@ -117,28 +129,39 @@ function mnemonify(tag, val) {
 }
 
 function dictionaryGroups(dom) {
-	// TODO: xpath depends on dictionary version, maybe auto-detect version then come back to dictionary file?
-
-	//var grps = xpath.select("//fix/messages/message/group/@name", dom); // 4.2
-	var grps = xpath.select("//fix/components/component/group/@name", dom); // 5.0SP2
-
-	var groupTags = [];	
-	for (var i = 0; i < grps.length; i++) {
-		groupTags.push(grps[i].value);
+	var groupNodes = xpath.select(groupXPath[FIX_VER], dom);
+	for (var i = 0; i < groupNodes.length; i++) {
+		var groupName = groupNodes[i].attributes[0].value;
+		GROUPS[groupName] = [];
+		var fields = groupNodes[i].getElementsByTagName('field');
+		for (var j = 0; j < fields.length; j++) {
+			var attr = fields[j].attributes[0].value;
+			GROUPS[groupName].push(attr);
+		}		
 	}
-	return _.uniq(groupTags);	
+}
+
+function getFixVer(dom) {
+	var fixMaj = xpath.select("//fix/@major", dom)[0].value;
+	var fixMin = xpath.select("//fix/@minor", dom)[0].value;
+	var fixSp = xpath.select("//fix/@servicepack", dom)[0].value;
+
+	FIX_VER = [fixMaj, fixMin, fixSp].join('.');
 }
 
 function readDataDictionary(fileLocation) {
 
 	var xml = fs.readFileSync(fileLocation).toString();
 	var dom = new DOMParser().parseFromString(xml);
-	var nodes = xpath.select("//fix/fields/field", dom);
 	
+	getFixVer(dom);
+
+	var nodes = xpath.select("//fix/fields/field", dom);
+
 	for (var i = 0; i < nodes.length; i++) {
+
 		var tagNumber = nodes[i].attributes[0].value
 		var tagName = nodes[i].attributes[1].value;
-	
 		var valElem = nodes[i].getElementsByTagName('value');
 		var values = {};
 	
@@ -152,28 +175,28 @@ function readDataDictionary(fileLocation) {
 		};
 	}
 
-	GROUPS = dictionaryGroups(dom);
+	dictionaryGroups(dom);
 
 }
 
 function checkParams() {
     if (process.argv.length < 3) {
-	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
-	console.error("\nfix2json will use standard input in the absence of a message file.");
-	process.exit(1);
+		console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
+		console.error("\nfix2json will use standard input in the absence of a message file.");
+		process.exit(1);
     } else if (process.argv.length === 3) {
-	dictname = process.argv[2];
+		dictname = process.argv[2];
     } else if (process.argv.length === 4) {
-	if (process.argv[2] === '-p') {
-	    pretty = true;
-	    dictname = process.argv[3];
-	} else {
-	    dictname = process.argv[2];
-	    filename = process.argv[3];
-	}
+		if (process.argv[2] === '-p') {
+		    pretty = true;
+	    	dictname = process.argv[3];
+		} else {
+	    	dictname = process.argv[2];
+	    	filename = process.argv[3];
+		}
     } else if (process.argv.length === 5) {
-	pretty = true;
-	dictname = process.argv[3];
-	filename = process.argv[4];
+		pretty = true;
+		dictname = process.argv[3];
+		filename = process.argv[4];
     }
 }
