@@ -1,6 +1,6 @@
 {
   "name": "fix2json",
-  "version": "0.2.12",
+  "version": "0.3.0",
   "description": "Command-line utility to present FIX protocol messages as JSON",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,8 +26,8 @@
     "xpath": "~0.0.9",
     "node-xml": "~1.0.2",
     "string_decoder": "~0.10.31",
-	"underscore": "~@1.7.0"  
- },
+    "underscore": "~@1.7.0"
+  },
   "keywords": [
     "FIX",
     "drop copy",
