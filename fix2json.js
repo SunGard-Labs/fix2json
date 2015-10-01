@@ -47,57 +47,80 @@ rd.on('line', function(line) {
 	
 function pluckGroup(tagArray, groupName) {
 
+	//	console.log('plucking group ' + groupName);
+
 	var group = [];
 	var member = {};			
 	var firstProp = undefined;
 
-	var numInGroup = tagArray.shift();
-	var groupName = numInGroup.tag;
-	var groupSize = numInGroup.val;
+	var idx = 0;
+	while (tagArray.length > 0) {
 
-	for (var i = 0; i < tagArray.length; i++) {
+		var tag = tagArray.shift();
+		var key = tag.tag;
+		var val = tag.val;				
 
-		var key = tagArray[i].tag;
-		var val = tagArray[i].val;				
+		//		console.log(tagArray.length + " left / " + JSON.stringify(key) + ": " + val);
 
-		if (i === 0) {
+		if (idx === 0) {
 			firstProp = key;
 			member[key] = val;
+			idx++;
 		} else if (_.contains(Object.keys(GROUPS), key)) {
-			var newGroup = pluckGroup(tagArray.slice(i), key);
-			var numToSkip = Object.keys(newGroup[0]).length;
+			var newGroup = pluckGroup(tagArray, key);
 		 	member[key.substring('No'.length)] = newGroup;
-			i = i + (numToSkip * groupSize) ; // skip a group's worth of tags
-		} else if (key === firstProp && i > 0) {
+			idx++;
+		} else if (key === firstProp && idx > 0) {
+			//console.log('adding member: ' + member['RptSeq']);
 			group.push(JSON.parse(JSON.stringify(member)));
+			//console.log("group now has " + Object.keys(group).length);
 			member = {};
 			member[key] = val;
+	   		idx++;
 		} else if (!_.contains(GROUPS[groupName], key)) {
-				group.push(JSON.parse(JSON.stringify(member)));
-				return group;
+				tagArray.push(tag)
+   				group.push(JSON.parse(JSON.stringify(member)));
+  				return group;
 		} else {
 			member[key] = val;
+			idx++;
 		}
-
 	}
+	return group;
+}
+
+
+function hasGroups(fieldArray) {
+
+	var groupNames = Object.keys(GROUPS);
+	
+	for (var i = 0; i < fieldArray.length; i++) {
+		if (_.contains(groupNames, fieldArray[i].tag)) {
+			return true;
+		}
+	}
+
+	return false;
 
 }
 
 function resolveFields(fieldArray) {
-
+	//	console.log('resolving fields');
 	targetObj = {};
 	var group = [];
-	var origLen = fieldArray.length;	
-	for (var i = 0; i < fieldArray.length; i++) {
-		targetObj[fieldArray[i].tag] = fieldArray[i].val;
-		if (_.contains(Object.keys(GROUPS), fieldArray[i].tag)) {
-			var groupPropertyName = fieldArray[i].tag.substring('No'.length);
-			var group = pluckGroup(fieldArray.slice(i), fieldArray[i].tag);
-			targetObj[groupPropertyName] = group;
-			var numToSkip = Object.keys(group[0]).length * fieldArray[i].val;
-			i = i + (numToSkip * fieldArray[i].val) ; // skip a group member's worth of tags
-		} 
-	}	
+
+	while (fieldArray.length > 0) {
+		var field = fieldArray.shift();
+		var key = field.tag;
+		var val = field.val;
+		if (_.contains(Object.keys(GROUPS), key)) {
+			targetObj[key] = val;
+			var newGroup = pluckGroup(fieldArray, key);
+		 	targetObj[key.substring('No'.length)] = newGroup;
+		} else {
+			targetObj[key] = val;
+		}
+	} 
 	return targetObj;
 }
 
@@ -114,7 +137,7 @@ function extractFields(record) {
 		both[0].replace("\n", '').replace("\r", '');
 		if (both[1] !== undefined) {
 			var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
-			var val = mnemonify(tag, both[1]);
+			var val = mnemonify(both[0], both[1]);
 			fieldArray.push({
 				tag: tag, 
 				val: val
