@@ -25,8 +25,9 @@
     "xmldom": "~0.1.19",
     "xpath": "~0.0.9",
     "node-xml": "~1.0.2",
-    "string_decoder": "~0.10.31"
-  },
+    "string_decoder": "~0.10.31",
+	"underscore": "~@1.7.0"  
+ },
   "keywords": [
     "FIX",
     "drop copy",
