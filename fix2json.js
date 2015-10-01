@@ -25,6 +25,7 @@ groupXPath['5.0.1'] = '//fix/components/component/group';
 groupXPath['5.0.0'] = '//fix/components/component/group';
 groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
+groupXPath['1.1.0'] = '//fix/messages/message/group';
 
 try {
 	readDataDictionary(dictname);
@@ -32,6 +33,7 @@ try {
 	console.error("Could not read dictionary file " + dictname + ", error: " + dictionaryException);
 	process.exit(1);
 }
+
 
 var input = filename ? fs.createReadStream(filename) : process.stdin;
 
@@ -46,9 +48,6 @@ rd.on('line', function(line) {
 });
 	
 function pluckGroup(tagArray, groupName) {
-
-	//	console.log('plucking group ' + groupName);
-
 	var group = [];
 	var member = {};			
 	var firstProp = undefined;
@@ -60,8 +59,6 @@ function pluckGroup(tagArray, groupName) {
 		var key = tag.tag;
 		var val = tag.val;				
 
-		//		console.log(tagArray.length + " left / " + JSON.stringify(key) + ": " + val);
-
 		if (idx === 0) {
 			firstProp = key;
 			member[key] = val;
@@ -71,9 +68,7 @@ function pluckGroup(tagArray, groupName) {
 		 	member[key.substring('No'.length)] = newGroup;
 			idx++;
 		} else if (key === firstProp && idx > 0) {
-			//console.log('adding member: ' + member['RptSeq']);
 			group.push(JSON.parse(JSON.stringify(member)));
-			//console.log("group now has " + Object.keys(group).length);
 			member = {};
 			member[key] = val;
 	   		idx++;
@@ -91,24 +86,18 @@ function pluckGroup(tagArray, groupName) {
 
 
 function hasGroups(fieldArray) {
-
 	var groupNames = Object.keys(GROUPS);
-	
 	for (var i = 0; i < fieldArray.length; i++) {
 		if (_.contains(groupNames, fieldArray[i].tag)) {
 			return true;
 		}
 	}
-
 	return false;
-
 }
 
 function resolveFields(fieldArray) {
-	//	console.log('resolving fields');
 	targetObj = {};
 	var group = [];
-
 	while (fieldArray.length > 0) {
 		var field = fieldArray.shift();
 		var key = field.tag;
@@ -168,19 +157,16 @@ function getFixVer(dom) {
 	var fixMaj = xpath.select("//fix/@major", dom)[0].value;
 	var fixMin = xpath.select("//fix/@minor", dom)[0].value;
 	var fixSp = xpath.select("//fix/@servicepack", dom)[0].value;
-
-	FIX_VER = [fixMaj, fixMin, fixSp].join('.');
+   	FIX_VER = [fixMaj, fixMin, fixSp].join('.');
 }
 
 function readDataDictionary(fileLocation) {
-
 	var xml = fs.readFileSync(fileLocation).toString();
 	var dom = new DOMParser().parseFromString(xml);
 	
 	getFixVer(dom);
 
 	var nodes = xpath.select("//fix/fields/field", dom);
-
 	for (var i = 0; i < nodes.length; i++) {
 
 		var tagNumber = nodes[i].attributes[0].value
@@ -197,9 +183,7 @@ function readDataDictionary(fileLocation) {
 			values: values
 		};
 	}
-
 	dictionaryGroups(dom);
-
 }
 
 function checkParams() {
