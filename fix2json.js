@@ -64,6 +64,7 @@ function pluckGroup(tagArray, groupName) {
 			member[key] = val;
 			idx++;
 		} else if (_.contains(Object.keys(GROUPS), key)) {
+			member[key] = val;
 			var newGroup = pluckGroup(tagArray, key);
 		 	member[key.substring('No'.length)] = newGroup;
 			idx++;
@@ -82,17 +83,6 @@ function pluckGroup(tagArray, groupName) {
 		}
 	}
 	return group;
-}
-
-
-function hasGroups(fieldArray) {
-	var groupNames = Object.keys(GROUPS);
-	for (var i = 0; i < fieldArray.length; i++) {
-		if (_.contains(groupNames, fieldArray[i].tag)) {
-			return true;
-		}
-	}
-	return false;
 }
 
 function resolveFields(fieldArray) {

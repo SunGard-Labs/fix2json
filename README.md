@@ -22,128 +22,138 @@ npm install -g fix2json
 ```
 ## Examples
 ```bash
-$ ./fix2json.js
+$ fix2json
 Usage: fix2json [-p] <data dictionary xml file> [<path to FIX message file>]
 
-$ du -hs MDFF_CME_20130714-20130715_7818_0
-2.2G      MDFF_CME_20130714-20130715_7818_0
-
-$ ./fix2json.js dict/FIX50SP2.xml MDFF_CME_20130714-20130715_7818_0 
-{"BodyLength":"3972","CheckSum":"117","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1950185","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"100696","SenderCompID":"CME","SendingTime":"20130715164359550","TradeDate":"20130715","RptSeq":"1603","SecurityDesc":"ESV3 P1220","NoMDEntries":"39","MDEntryType":"BID","MDEntryPx":"80","MDEntrySize":"980","MDEntryTime":"164359000","MDUpdateAction":"CHANGE","TradingSessionID":"HALFDAY","NumberOfOrders":"4","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
-{"BodyLength":"102","CheckSum":"001","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17554","MsgType":"SECURITYSTATUS","SecurityID":"102149","SenderCompID":"CME","SendingTime":"20130714180212729","TradeDate":"20130715","SecurityDesc":"ESZ3 C2050","HighPx":"9999900","LowPx":"5","ApplVerID":"FIX50SP2"}
-{"BodyLength":"5733","CheckSum":"062","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"1041351","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"103998","SenderCompID":"CME","SendingTime":"20130715141815962","TradeDate":"20130715","RptSeq":"7443","SecurityDesc":"ESZ3 P1760","NoMDEntries":"57","MDEntryType":"OFFER","MDEntryPx":"11975","MDEntrySize":"25","MDEntryTime":"141815000","MDUpdateAction":"DELETE","TradingSessionID":"HALFDAY","NumberOfOrders":"1","MDPriceLevel":"2","ApplVerID":"FIX50SP2"}
-{"BodyLength":"4343","CheckSum":"005","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"2690379","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"117457","SenderCompID":"CME","SendingTime":"20130715193111628","TradeDate":"20130715","RptSeq":"543","SecurityDesc":"ESN3 C2125","NoMDEntries":"43","MDEntryType":"OFFER","MDEntryPx":"35","MDEntrySize":"325","MDEntryTime":"193111000","MDUpdateAction":"NEW","TradingSessionID":"HALFDAY","NumberOfOrders":"2","MDPriceLevel":"3","ApplVerID":"FIX50SP2"}
-{"BodyLength":"140","CheckSum":"193","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"17557","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"102143","SenderCompID":"CME","SendingTime":"20130714180212777","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P0850","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"30","MDEntryTime":"180212000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
-{"BodyLength":"143","CheckSum":"122","SecurityIDSource":"EXCHANGE SYMBOL","MsgSeqNum":"19979","MsgType":"MARKETDATAINCREMENTALREFRESH","SecurityID":"105756","SenderCompID":"CME","SendingTime":"20130714180226470","SettlDate":"20130712","TradeDate":"20130715","RptSeq":"1","SecurityDesc":"ESZ3 P1745","NoMDEntries":"1","MDEntryType":"SETTLEMENT PRICE","MDEntryPx":"10850","MDEntryTime":"180226000","MDUpdateAction":"NEW","ApplVerID":"FIX50SP2"}
-...
-
-$ ./fix2json.js -p dict/FIX50SP2.xml MDFF_CME_20130714-20130715_7818_0 
+$ ./fix2json.js -p ~/Desktop/fix2json/dict/FIX50SP2-customized.xml secdef.dat|more
 {
-    "BodyLength": "3972",
-    "CheckSum": "117",
+    "5796": "20150928",
+    "5799": "00000000",
+    "6937": "BR:FRO",
+    "9779": "N",
+    "9787": "1.0000000",
+    "9800": "2",
+    "MsgType": "SECURITYDEFINITION",
+    "SecurityUpdateAction": "MODIFY",
+    "LastUpdateTime": "20150928230711000000",
+    "ApplID": "510",
+    "MarketSegmentID": "12",
+    "UnderlyingProduct": "12",
+    "SecurityExchange": "XBMF",
+    "SecurityGroup": "BR:F6",
+    "Symbol": "BR:FRON20",
+    "SecurityID": "20033286",
     "SecurityIDSource": "EXCHANGE SYMBOL",
-    "MsgSeqNum": "1950185",
-    "MsgType": "MARKETDATAINCREMENTALREFRESH",
-    "SecurityID": "100696",
-    "SenderCompID": "CME",
-    "SendingTime": "20130715164359550",
-    "TradeDate": "20130715",
-    "RptSeq": "1603",
-    "SecurityDesc": "ESV3 P1220",
-    "NoMDEntries": "39",
-    "MDEntryType": "BID",
-    "MDEntryPx": "80",
-    "MDEntrySize": "980",
-    "MDEntryTime": "164359000",
-    "MDUpdateAction": "CHANGE",
-    "TradingSessionID": "HALFDAY",
-    "NumberOfOrders": "4",
-    "MDPriceLevel": "3",
-    "ApplVerID": "FIX50SP2"
+    "SecurityType": "FUTURE",
+    "CFICode": "FXXXXX",
+    "MaturityMonthYear": "202007",
+    "Currency": "BRL",
+    "MatchAlgorithm": "F",
+    "MinTradeVol": "10",
+    "MaxTradeVol": "10000",
+    "MinPriceIncrement": "0.0100000",
+    "SettlPriceType": "10000000",
+    "NoEvents": "2",
+    "Events": [
+        {
+            "EventType": "ACTIVATION",
+            "EventTime": "20150827000000000000"
+        },
+        {
+            "EventType": "LAST ELIGIBLE TRADE DATE",
+            "EventTime": "20200527211000000000",
+            "NoMDFeedTypes": "1",
+            "MDFeedTypes": [
+                {
+                    "MDFeedType": "GBX",
+                    "MarketDepth": "10",
+                    "NoInstrAttrib": "1",
+                    "InstrAttrib": [
+                        {
+                            "InstrAttribType": "TRADE TYPE ELIGIBILITY DETAILS FOR SECURITY",
+                            "InstrAttribValue": "00000000000000000000000000000001",
+                            "NoLotTypeRules": "1",
+                            "LotTypeRules": [
+                                {
+                                    "LotType": "ROUND LOT BASED UPON UNITOFMEASURE",
+                                    "MinLotSize": "10.0000",
+                                    "NoLegs": "2",
+                                    "Legs": [
+                                        {
+                                            "LegSecurityID": "20268036"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "LegSide": "1",
+    "LegRatioQty": "1",
+    "TradingReferencePrice": "4.6700000",
+    "LegSecurityIDSource": "8",
+    "LegSecurityID": "20268012"
 }
 {
-    "BodyLength": "102",
-    "CheckSum": "001",
+    "5796": "20151001",
+    "5799": "00000000",
+    "6937": "BR:OC1",
+    "9779": "N",
+    "9787": "1.0000000",
+    "9800": "3",
+    "MsgType": "SECURITYDEFINITION",
+    "SecurityUpdateAction": "MODIFY",
+    "LastUpdateTime": "20151001173404000000",
+    "ApplID": "510",
+    "MarketSegmentID": "12",
+    "UnderlyingProduct": "14",
+    "SecurityExchange": "XBMF",
+    "SecurityGroup": "BR:D7",
+    "Symbol": "BR:OC1N21",
+    "SecurityID": "20248016",
     "SecurityIDSource": "EXCHANGE SYMBOL",
-    "MsgSeqNum": "17554",
-    "MsgType": "SECURITYSTATUS",
-    "SecurityID": "102149",
-    "SenderCompID": "CME",
-    "SendingTime": "20130714180212729",
-    "TradeDate": "20130715",
-    "SecurityDesc": "ESZ3 C2050",
-    "HighPx": "9999900",
-    "LowPx": "5",
-    "ApplVerID": "FIX50SP2"
-}
-{
-    "BodyLength": "5733",
-    "CheckSum": "062",
-    "SecurityIDSource": "EXCHANGE SYMBOL",
-    "MsgSeqNum": "1041351",
-    "MsgType": "MARKETDATAINCREMENTALREFRESH",
-    "SecurityID": "103998",
-    "SenderCompID": "CME",
-    "SendingTime": "20130715141815962",
-    "TradeDate": "20130715",
-    "RptSeq": "7443",
-    "SecurityDesc": "ESZ3 P1760",
-    "NoMDEntries": "57",
-    "MDEntryType": "OFFER",
-    "MDEntryPx": "11975",
-    "MDEntrySize": "25",
-    "MDEntryTime": "141815000",
-    "MDUpdateAction": "DELETE",
-    "TradingSessionID": "HALFDAY",
-    "NumberOfOrders": "1",
-    "MDPriceLevel": "2",
-    "ApplVerID": "FIX50SP2"
-}
-{
-    "BodyLength": "4343",
-    "CheckSum": "005",
-    "SecurityIDSource": "EXCHANGE SYMBOL",
-    "MsgSeqNum": "2690379",
-    "MsgType": "MARKETDATAINCREMENTALREFRESH",
-    "SecurityID": "117457",
-    "SenderCompID": "CME",
-    "SendingTime": "20130715193111628",
-    "TradeDate": "20130715",
-    "RptSeq": "543",
-    "SecurityDesc": "ESN3 C2125",
-    "NoMDEntries": "43",
-    "MDEntryType": "OFFER",
-    "MDEntryPx": "35",
-    "MDEntrySize": "325",
-    "MDEntryTime": "193111000",
-    "MDUpdateAction": "NEW",
-    "TradingSessionID": "HALFDAY",
-    "NumberOfOrders": "2",
-    "MDPriceLevel": "3",
-    "ApplVerID": "FIX50SP2"
-}
-{
-    "BodyLength": "140",
-    "CheckSum": "193",
-    "SecurityIDSource": "EXCHANGE SYMBOL",
-    "MsgSeqNum": "17557",
-    "MsgType": "MARKETDATAINCREMENTALREFRESH",
-    "SecurityID": "102143",
-    "SenderCompID": "CME",
-    "SendingTime": "20130714180212777",
-    "SettlDate": "20130712",
-    "TradeDate": "20130715",
-    "RptSeq": "1",
-    "SecurityDesc": "ESZ3 P0850",
-    "NoMDEntries": "1",
-    "MDEntryType": "SETTLEMENT PRICE",
-    "MDEntryPx": "30",
+    "SecurityType": "FUTURE",
+    "CFICode": "FFFCSX",
+    "MaturityMonthYear": "202107",
+    "Currency": "BRL",
+    "SettlCurrency": "BRL",
+    "MatchAlgorithm": "F",
+    "MinTradeVol": "5",
+    "MaxTradeVol": "10000",
+    "MinPriceIncrement": "0.0100000",
+    "SettlPriceType": "10000000",
+    "ContractMultiplier": "1",
+    "NoEvents": "2",
+    "Events": [
+        {
+            "EventType": "ACTIVATION",
+            "EventTime": "20130228000000000000"
+        },
+        {
+            "EventType": "LAST ELIGIBLE TRADE DATE",
+            "EventTime": "20210630211000000000",
+            "NoMDFeedTypes": "1",
+            "MDFeedTypes": [
+                {
+                    "MDFeedType": "GBX",
+                    "MarketDepth": "10",
+                    "NoInstrAttrib": "1",
+                    "InstrAttrib": [
+                        {
+                            "InstrAttribType": "TRADE TYPE ELIGIBILITY DETAILS FOR SECURITY",
+                            "InstrAttribValue": "00000000000000000000000000000001",
+                            "NoLotTypeRules": "1",
+                            "LotTypeRules": [
+                            
 ...
 
 $ fix2json dict/FIX42.xml fixmsg_11212014.txt | mongoimport --drop --collection FIX
 connected to: 127.0.0.1
 2015-08-20T15:19:21.465-0400 dropping: test.FIX
-2015-08-20T15:19:24.013-0400     		15600	5200/second
+2015-08-20T15:19:24.013-0400         	15600	5200/second
 2015-08-20T15:19:27.000-0400 			34600	5766/second
 2015-08-20T15:19:30.005-0400 			53400	5933/second
 2015-08-20T15:19:33.009-0400 			72900	6075/second
@@ -190,7 +200,9 @@ $ head -1 testfiles/100FIX42.dat | ./fix2json.js -p dict/FIX42.xml
 
 ## Caveats
 
-* fix2json makes no semantic judgements about the FIX data being processed and blindly applies the specified data dictionary to the input FIX file.  Feedback from the community on an appropriate level of validation is welcomed.
+* Data dictionary discrepancies will throw a monkeywrench into the processing of repeating groups.  This is because fix2json refers back to the data dictionary during group processing in order to determine when the group member tags end.  However, if a group member contains a tag does not reside in the current dictionary under the particular group being processed, fix2json will truncate the group prematurely, triggering rage in its victims.  In this case, the best approach at the moment is to reconcile the data dictionaries employed the particular FIX specification of the entity originating the FIX data, and adjusted the dictionaries accordingly.  Unrecognized individual tags will simply be represented as the FIX tag number and its corresponding value, indicating a data dictionary mismatch less destructively.
+
+* fix2json makes few semantic judgements about the FIX data being processed and blindly applies the specified data dictionary to the input FIX file.  Feedback from the community on an appropriate level of validation is welcomed.
 
 * fix2json now uses streams instead of loading up the entire source file in one go.  This means that you can process a 2G+ file starting immediately.  What this also means is that fix2json no longer returns a proper JSON array as it's output.  Individual JSON objects will be output that correspond to the individual messages in the source file.  For this reason, pretty printing is disabled by default.  Use ```-p``` as the first argument to pretty print the output JSON.
 
