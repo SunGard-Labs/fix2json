@@ -51,10 +51,9 @@ function pluckGroup(tagArray, groupName) {
 	var group = [];
 	var member = {};			
 	var firstProp = undefined;
-
 	var idx = 0;
-	while (tagArray.length > 0) {
 
+	while (tagArray.length > 0) {
 		var tag = tagArray.shift();
 		var key = tag.tag;
 		var val = tag.val;				
@@ -74,9 +73,9 @@ function pluckGroup(tagArray, groupName) {
 			member[key] = val;
 	   		idx++;
 		} else if (!_.contains(GROUPS[groupName], key)) {
-				tagArray.push(tag)
-   				group.push(JSON.parse(JSON.stringify(member)));
-  				return group;
+			tagArray.push(tag)
+			group.push(JSON.parse(JSON.stringify(member)));
+ 			return group;
 		} else {
 			member[key] = val;
 			idx++;
@@ -154,10 +153,10 @@ function readDataDictionary(fileLocation) {
 	var xml = fs.readFileSync(fileLocation).toString();
 	var dom = new DOMParser().parseFromString(xml);
 	var nodes = xpath.select("//fix/fields/field", dom);
+
 	getFixVer(dom);
 	
 	for (var i = 0; i < nodes.length; i++) {
-
 		var tagNumber = nodes[i].attributes[0].value
 		var tagName = nodes[i].attributes[1].value;
 		var valElem = nodes[i].getElementsByTagName('value');
