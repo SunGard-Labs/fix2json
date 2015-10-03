@@ -15,6 +15,8 @@ Some scenarios where fix2json might be of use are:
 
 The current level of fix2json semantic naivete is very high.  As such, users should consider ensuring the semantic validity of all FIX messages upstream.
 
+There is a high likelihood that the data dictionaries employed will need to be adjusted to conform to the FIX specification of the particular message generator.  In particular, handling of repeating groups uses the specified dictionary to determine the end of any particular group by checking whether the current field is registered under that group within the data dictionary.  If the FIX messages use custom fields that do not exist in the supplied data dictionary, the dictionary should be patched accordingly.  Ungrouped fields not found within the dictionary's group defition will simply render as the tag number and tag value (see example below.)
+
 ## Install
 
 ```bash
@@ -25,43 +27,44 @@ npm install -g fix2json
 $ fix2json
 Usage: fix2json [-p] <data dictionary xml file> [<path to FIX message file>]
 
-$ ./fix2json.js -p ~/Desktop/fix2json/dict/FIX50SP2-customized.xml secdef.dat|more
+$ cat secdef.dat | head -10 | tail -1 | fix2json -p dict/FIX50SP2.xml 
 {
-    "5796": "20150928",
+    "5796": "20151001",
     "5799": "00000000",
-    "6937": "BR:FRO",
+    "6937": "BR:DDM",
     "9779": "N",
     "9787": "1.0000000",
     "9800": "2",
     "MsgType": "SECURITYDEFINITION",
     "SecurityUpdateAction": "MODIFY",
-    "LastUpdateTime": "20150928230711000000",
+    "LastUpdateTime": "20151001173404000000",
     "ApplID": "510",
     "MarketSegmentID": "12",
-    "UnderlyingProduct": "12",
+    "UnderlyingProduct": "14",
     "SecurityExchange": "XBMF",
-    "SecurityGroup": "BR:F6",
-    "Symbol": "BR:FRON20",
-    "SecurityID": "20033286",
+    "SecurityGroup": "BR:P3",
+    "Symbol": "BR:DDMQ20",
+    "SecurityID": "20030266",
     "SecurityIDSource": "EXCHANGE SYMBOL",
     "SecurityType": "FUTURE",
-    "CFICode": "FXXXXX",
-    "MaturityMonthYear": "202007",
+    "CFICode": "FFFCSX",
+    "MaturityMonthYear": "202008",
     "Currency": "BRL",
+    "SettlCurrency": "BRL",
     "MatchAlgorithm": "F",
-    "MinTradeVol": "10",
-    "MaxTradeVol": "10000",
+    "MinTradeVol": "5",
+    "MaxTradeVol": "1000",
     "MinPriceIncrement": "0.0100000",
     "SettlPriceType": "10000000",
     "NoEvents": "2",
     "Events": [
         {
             "EventType": "ACTIVATION",
-            "EventTime": "20150827000000000000"
+            "EventTime": "20150529000000000000"
         },
         {
             "EventType": "LAST ELIGIBLE TRADE DATE",
-            "EventTime": "20200527211000000000",
+            "EventTime": "20200731211000000000",
             "NoMDFeedTypes": "1",
             "MDFeedTypes": [
                 {
@@ -76,13 +79,7 @@ $ ./fix2json.js -p ~/Desktop/fix2json/dict/FIX50SP2-customized.xml secdef.dat|mo
                             "LotTypeRules": [
                                 {
                                     "LotType": "ROUND LOT BASED UPON UNITOFMEASURE",
-                                    "MinLotSize": "10.0000",
-                                    "NoLegs": "2",
-                                    "Legs": [
-                                        {
-                                            "LegSecurityID": "20268036"
-                                        }
-                                    ]
+                                    "MinLotSize": "5.0000"
                                 }
                             ]
                         }
@@ -91,69 +88,16 @@ $ ./fix2json.js -p ~/Desktop/fix2json/dict/FIX50SP2-customized.xml secdef.dat|mo
             ]
         }
     ],
-    "LegSide": "1",
-    "LegRatioQty": "1",
-    "TradingReferencePrice": "4.6700000",
-    "LegSecurityIDSource": "8",
-    "LegSecurityID": "20268012"
+    "LowLimitPrice": "5.2800000",
+    "TradingReferencePrice": "7.2700000",
+    "HighLimitPrice": "9.2800000"
 }
-{
-    "5796": "20151001",
-    "5799": "00000000",
-    "6937": "BR:OC1",
-    "9779": "N",
-    "9787": "1.0000000",
-    "9800": "3",
-    "MsgType": "SECURITYDEFINITION",
-    "SecurityUpdateAction": "MODIFY",
-    "LastUpdateTime": "20151001173404000000",
-    "ApplID": "510",
-    "MarketSegmentID": "12",
-    "UnderlyingProduct": "14",
-    "SecurityExchange": "XBMF",
-    "SecurityGroup": "BR:D7",
-    "Symbol": "BR:OC1N21",
-    "SecurityID": "20248016",
-    "SecurityIDSource": "EXCHANGE SYMBOL",
-    "SecurityType": "FUTURE",
-    "CFICode": "FFFCSX",
-    "MaturityMonthYear": "202107",
-    "Currency": "BRL",
-    "SettlCurrency": "BRL",
-    "MatchAlgorithm": "F",
-    "MinTradeVol": "5",
-    "MaxTradeVol": "10000",
-    "MinPriceIncrement": "0.0100000",
-    "SettlPriceType": "10000000",
-    "ContractMultiplier": "1",
-    "NoEvents": "2",
-    "Events": [
-        {
-            "EventType": "ACTIVATION",
-            "EventTime": "20130228000000000000"
-        },
-        {
-            "EventType": "LAST ELIGIBLE TRADE DATE",
-            "EventTime": "20210630211000000000",
-            "NoMDFeedTypes": "1",
-            "MDFeedTypes": [
-                {
-                    "MDFeedType": "GBX",
-                    "MarketDepth": "10",
-                    "NoInstrAttrib": "1",
-                    "InstrAttrib": [
-                        {
-                            "InstrAttribType": "TRADE TYPE ELIGIBILITY DETAILS FOR SECURITY",
-                            "InstrAttribValue": "00000000000000000000000000000001",
-                            "NoLotTypeRules": "1",
-                            "LotTypeRules": [
-                            
-...
+
 
 $ fix2json dict/FIX42.xml fixmsg_11212014.txt | mongoimport --drop --collection FIX
 connected to: 127.0.0.1
 2015-08-20T15:19:21.465-0400 dropping: test.FIX
-2015-08-20T15:19:24.013-0400         	15600	5200/second
+2015-08-20T15:19:24.013-0400             15600	5200/second
 2015-08-20T15:19:27.000-0400 			34600	5766/second
 2015-08-20T15:19:30.005-0400 			53400	5933/second
 2015-08-20T15:19:33.009-0400 			72900	6075/second
@@ -198,7 +142,7 @@ $ head -1 testfiles/100FIX42.dat | ./fix2json.js -p dict/FIX42.xml
 
 ```
 
-## Caveats
+## Notes
 
 * Data dictionary discrepancies will throw a monkeywrench into the processing of repeating groups.  This is because fix2json refers back to the data dictionary during group processing in order to determine when the group member tags end.  However, if a group member contains a tag does not reside in the current dictionary under the particular group being processed, fix2json will truncate the group prematurely, triggering rage in its victims.  In this case, the best approach at the moment is to reconcile the data dictionaries employed the particular FIX specification of the entity originating the FIX data, and adjusted the dictionaries accordingly.  Unrecognized individual tags will simply be represented as the FIX tag number and its corresponding value, indicating a data dictionary mismatch less destructively.
 
@@ -220,4 +164,6 @@ $ head -1 testfiles/100FIX42.dat | ./fix2json.js -p dict/FIX42.xml
 MIT. See license text in [LICENSE](LICENSE).
 
 ## Copyrights and Names
-Copyright © SunGard 2015. Licensed under the MIT license.   
+Copyright © SunGard 2015. Licensed under the MIT license.
+
+

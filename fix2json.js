@@ -153,10 +153,9 @@ function getFixVer(dom) {
 function readDataDictionary(fileLocation) {
 	var xml = fs.readFileSync(fileLocation).toString();
 	var dom = new DOMParser().parseFromString(xml);
-	
-	getFixVer(dom);
-
 	var nodes = xpath.select("//fix/fields/field", dom);
+	getFixVer(dom);
+	
 	for (var i = 0; i < nodes.length; i++) {
 
 		var tagNumber = nodes[i].attributes[0].value
@@ -185,11 +184,11 @@ function checkParams() {
 		dictname = process.argv[2];
     } else if (process.argv.length === 4) {
 		if (process.argv[2] === '-p') {
-		    pretty = true;
-	    	dictname = process.argv[3];
+			pretty = true;
+			dictname = process.argv[3];
 		} else {
-	    	dictname = process.argv[2];
-	    	filename = process.argv[3];
+			dictname = process.argv[2];
+			filename = process.argv[3];
 		}
     } else if (process.argv.length === 5) {
 		pretty = true;
