@@ -57,31 +57,27 @@ function pluckGroup(tagArray, groupName) {
 		var tag = tagArray.shift();
 		var key = tag.tag;
 		var val = tag.val;				
-
 		if (idx === 0) {
 			firstProp = key;
 			member[key] = val;
-			idx++;
 		} else if (_.contains(Object.keys(GROUPS), key)) {
 			member[key] = val;
 			var newGroup = pluckGroup(tagArray, key);
 		 	member[key.substring('No'.length)] = newGroup;
-			idx++;
 		} else if (key === firstProp && idx > 0) {
-			group.push(JSON.parse(JSON.stringify(member)));
+			group.push(member);
 			member = {};
 			member[key] = val;
-	   		idx++;
 		} else if (!_.contains(GROUPS[groupName], key)) {
 			tagArray.push(tag)
 			group.push(JSON.parse(JSON.stringify(member)));
  			return group;
 		} else {
 			member[key] = val;
-			idx++;
 		}
+		idx++;
 	}
-	return group;
+
 }
 
 function resolveFields(fieldArray) {
