@@ -1,6 +1,6 @@
 {
   "name": "fix2json",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Command-line utility to present FIX protocol messages as JSON",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
