@@ -29,23 +29,22 @@ groupXPath['1.1.0'] = '//fix/messages/message/group';
 
 try {
 	readDataDictionary(dictname);
-} catch(dictionaryException) {
-	console.error("Could not read dictionary file " + dictname + ", error: " + dictionaryException);
+	var input = filename ? fs.createReadStream(filename) : process.stdin;
+	rd = readline.createInterface({
+		input: input,
+		output: process.stdout,
+		terminal: false
+	});
+
+	rd.on('line', function(line) {
+	  		if (line.indexOf(delim) > -1) {
+				console.log(decoder.write(processLine(line)));
+			}
+	});
+} catch(mainException) {
+	console.error("Error in main routine: " + mainException);
 	process.exit(1);
 }
-
-
-var input = filename ? fs.createReadStream(filename) : process.stdin;
-
-rd = readline.createInterface({
-	input: input,
-	output: process.stdout,
-	terminal: false
-});
-
-rd.on('line', function(line) {
-	console.log(decoder.write(processLine(line)));
-});
 	
 function pluckGroup(tagArray, groupName) {
 	var group = [];
