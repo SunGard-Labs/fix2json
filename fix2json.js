@@ -16,9 +16,20 @@ var GROUPS = {};
 var FIX_VER = undefined;
 var rd = {};
 
+// some of these TODO's below are very speculative:
+//
+// TODO: decouple logic from file ingestion, but if this was a browser module, how would we package the dictionaries?
+// TODO: get dictionary management out of this module
+// TODO: XML merge for customizing data dictionaries with fragments
+// TODO: ability to hold multiple dictionaries in memory
+// TODO: autodetect FIX version from source data?
+// TODO: option to flatten groups?
+// TODO: emit pre and post processing events for each message processed
+// TODO: forward engineer JSON to FIX?  Would be pretty useful for browser UI's based on FIX dictionaries
+
 checkParams();
 
-// establish Xpaths for the requisite data dictionary version
+// establish Xpaths for the requisite data dictionary versions
 var groupXPath = {};
 groupXPath['5.0.2'] = '//fix/components/component/group';
 groupXPath['5.0.1'] = '//fix/components/component/group';
@@ -69,7 +80,7 @@ function pluckGroup(tagArray, groupName) {
 			member[key] = val;
 		} else if (!_.contains(GROUPS[groupName], key)) {
 			tagArray.push(tag)
-			group.push(JSON.parse(JSON.stringify(member)));
+			group.push(member);
  			return group;
 		} else {
 			member[key] = val;

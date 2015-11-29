@@ -919,6 +919,9 @@
   </message>
   <message name='SecurityDefinition' msgcat='app' msgtype='d'>
    <component name='ApplicationSequenceControl' required='N' />
+   <field name='TradingReferenceDate' required='N' />
+   <field name='DisplayFactor' required='N' />
+   <field name='MinCabPrice' required='N' />
    <field name='SecurityReportID' required='N' />
    <field name='ClearingBusinessDate' required='N' />
    <field name='SecurityReqID' required='N' />
@@ -10013,5 +10016,8 @@
    <value enum='2' description='REJECTED' />
    <value enum='3' description='TERMINATE_UNASSIGN' />
   </field>
+  <field number='5796' name='TradingReferenceDate' type='LOCALMKTDATE'/>
+  <field number='9787' name='DisplayFactor' type='FLOAT' />
+  <field number='9850' name='MinCabPrice' type='PRICE' />
  </fields>
 </fix>
