@@ -10,7 +10,8 @@
     "url": "https://github.com/SunGard-Labs/fix2json"
   },
   "bin": {
-    "fix2json": "fix2json.js"
+    "fix2json": "fix2json.js",
+	"fix2yaml": "fix2json.js"
   },
   "author": "SunGard Consulting Services",
   "contributors": [
@@ -26,8 +27,9 @@
     "xmldom": "~0.1.19",
     "xpath": "~0.0.9",
     "node-xml": "~1.0.2",
-    "string_decoder": "~0.10.31"
-  },
+    "string_decoder": "~0.10.31",
+	"yamljs": "~0.2.4" 
+ },
   "keywords": [
     "FIX",
     "drop copy",

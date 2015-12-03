@@ -1,11 +1,12 @@
 #! /usr/bin/env node
 
-var fs = require('fs')
+var fs = require('fs');
 var xpath = require('xpath');
 var _ = require('underscore');
 var DOMParser = require('xmldom').DOMParser;
 var readline = require('readline');
 var StringDecoder = require('string_decoder').StringDecoder;
+var YAML = require('yamljs');
 var decoder = new StringDecoder();
 var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
@@ -15,6 +16,7 @@ var TAGS = {};
 var GROUPS = {};
 var FIX_VER = undefined;
 var rd = {};
+var yaml = false;
 
 // some of these TODO's below are very speculative:
 //
@@ -110,7 +112,13 @@ function resolveFields(fieldArray) {
 
 function processLine(line) {
 	var targetObj = resolveFields(extractFields(line));
-	return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
+		
+	if (yaml) {
+		return YAML.stringify(targetObj, 256);
+	} else {
+		return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
+	}
+
 }
 
 function extractFields(record) {
@@ -200,4 +208,9 @@ function checkParams() {
 		dictname = process.argv[3];
 		filename = process.argv[4];
     }
+
+	if (process.argv[1].indexOf('yaml') > 0) {
+		yaml = true;
+	}
+
 }
