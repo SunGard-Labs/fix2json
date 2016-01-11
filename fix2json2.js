@@ -62,18 +62,21 @@ function extractFields(record) {
     var fields = record.split(delim);
     for (var i = 0; i < fields.length; i++) {
     	var both = fields[i].split('=');
-	both[0].replace("\n", '').replace("\r", '');
-	if (both[0]) {
-	    var xpth = '//fix/fields/field[@number=\'' + both[0] + '\']/@type'; // replace
-	    var fieldDefs = xpath.select(xpth, dom); // replace
-	    var tag = both[0];
-	    var val = both[1]; // format this depending on type
-	    fieldArray.push({ 
-		tag: tag, 
-		val: val,
-		type: fieldDefs[0].nodeValue
-	    });
-	}
+		both[0].replace("\n", '').replace("\r", '');
+		if (both[0]) {
+	   		var xpth = '//fix/fields/field[@number=\'' + both[0] + '\']/@type'; // replace
+	    	var fieldDefs = xpath.select(xpth, dom); // replace
+	   		var tag = both[0];
+	    	var val = both[1]; // format this depending on type
+	    	var type = fieldDefs[0] ? fieldDefs[0].nodeValue : undefined;
+			var name = tags[tag] ? tags[tag].name : '';
+			fieldArray.push({ 
+				tag: tag, 
+				name: name, 
+				val: val,
+				type: type
+	    	});
+		}
     }
     return fieldArray;
 }
