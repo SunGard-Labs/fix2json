@@ -12,7 +12,6 @@ var delim = String.fromCharCode(01); // ASCII start-of-header
 var pretty = false;
 var dictname;	
 var filename;
-//var TAGS = {};
 var GROUPS = {};
 var FIX_VER = undefined;
 var rd = {};
@@ -25,7 +24,7 @@ var dom = readDataDictionary(dictname);
 var tags = buildTagTypeMap(dom);
 // console.log(tags);
 var msgMap = buildMessageFieldMap(dom);
-console.log(msgMap);
+//console.log(msgMap);
 
 
 try {
@@ -65,17 +64,8 @@ function extractFields(record) {
     	var both = fields[i].split('=');
 	both[0].replace("\n", '').replace("\r", '');
 	if (both[0]) {
-	    // grab fieldName
-	    // grab fieldType
-	    // if it's a group or component, traverse
-	    // if it's a number, format string as number
-	    // otherwise keep as string
- 	    var xpth = '//fix/fields/field[@number=\'' + both[0] + '\']/@type';
-	    //console.log(tagFields);
-	    var fieldDefs = xpath.select(xpth, dom);
-	    //console.log(fieldDefs[0].nodeName + ": " + fieldDefs[0].nodeValue);
-//	    console.log(fieldDef);
-	    //	    console.log(both[0] + ": " + both[1]);
+	    var xpth = '//fix/fields/field[@number=\'' + both[0] + '\']/@type'; // replace
+	    var fieldDefs = xpath.select(xpth, dom); // replace
 	    var tag = both[0];
 	    var val = both[1]; // format this depending on type
 	    fieldArray.push({ 
@@ -87,60 +77,18 @@ function extractFields(record) {
     }
     return fieldArray;
 }
-/*	if (both[1] !== undefined) {
-	    var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
-	    var val = mnemonify(both[0], both[1]);
-	    fieldArray.push({
-		    tag: tag, 
-			val: val
-			});
-			}	*/
-//   }
-    //    process.exit(0);
-    //return fieldArray;/
-//}
 
 function resolveFields(fieldArray) {
     var targetObj = {};
     while (fieldArray.length > 0) {
 	var field = fieldArray.shift();
-	console.log(field.tag + ': ' + field.val);
-	if (field.tag === 'MsgType') {
-	    console.log('found msgtype');
-	}
-
-	var xpth = '//fix/messages/message[@name=\'' + '' + '\']/field';
-	var fields = xpath.select(xpth, dom);
-
-	//var msgType = _.find();
-			     /**
-				if (_.contains(Object.keys(GROUPS), key)) {
-			targetObj[key] = val;
-			var newGroup = pluckGroup(fieldArray, key);
-		 	targetObj[key.substring('No'.length)] = newGroup;
-			} else {
-			targetObj[key] = val;
-		}
-			     **/
+	var xpth = '//fix/messages/message[@name=\'' + '' + '\']/field'; // replace
+	var fields = xpath.select(xpth, dom); // replace
 	targetObj[field.tag] = field.val;
     }		     
     return targetObj;
 }
     
-
-// msgtype is message #35
-// 1128 is ApplVerID
-/**
-	for (var i = 0; i < fields.length; i++) {
-	    var field;
-	    for (var j = 0; j < fields[i].attributes.length; j++) {
-		field += fields[i].attributes[j].name + "/" + fields[i].attributes[j].value + " ";
-	    }
-	    console.log(field);
-	    field = '';
-	}
-});
-**/
 function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     return new DOMParser().parseFromString(xml);
@@ -150,7 +98,6 @@ function buildTagTypeMap(dom) {
     var tags = {};
     var xpth = '//fix/fields/field';
     var fieldDefs = xpath.select(xpth, dom);
-    
     for (var i = 0; i < fieldDefs.length; i++) {
 	var number = fieldDefs[i].attributes[0].nodeValue;
 	var name = fieldDefs[i].attributes[1].nodeValue;
@@ -160,7 +107,6 @@ function buildTagTypeMap(dom) {
 	    type: type
 	};
     }
-    
     return tags;
 }
 
@@ -168,34 +114,18 @@ function buildMessageFieldMap(dom) {
     var messages = {};
     var xpth = '//fix/messages/message';
     var msgDefs = xpath.select(xpth, dom);
-
     for (var i = 0; i < msgDefs.length; i++) {
-	
 	var msgName = msgDefs[i].attributes[0].value; // message name
 	var fields = msgDefs[i].getElementsByTagName('field');
 	var components = msgDefs[i].getElementsByTagName('components');
+	var msgFields = [];
 
-	console.log(msgName);
-
-	messages[msgName] = fields
-    
+	for (var j = 0; j < fields.length; j++) {
+	    msgFields.push(fields[j].attributes[0].value);
+	}
+	messages[msgName] = msgFields;
     }
-
     return messages;
-    //    console.log(msgDefs);
-    /**
-    for (var i = 0; i < fieldDefs.length; i++) {
-	var number = fieldDefs[i].attributes[0].nodeValue;
-	var name = fieldDefs[i].attributes[1].nodeValue;
-	var type = fieldDefs[i].attributes[2].nodeValue;
-	tags[number] = { 
-	    name: name, 
-	    type: type
-	};
-    }
-    */
-    //    return messages;
-
 }
 
 function checkParams() {
