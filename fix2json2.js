@@ -22,9 +22,9 @@ var NUMERIC_TYPES=['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM']
 checkParams();
 var dom = readDataDictionary(dictname);
 var tags = buildTagTypeMap(dom);
-// console.log(tags);
+console.log(JSON.stringify(tags, undefined, 4));
 var msgMap = buildMessageFieldMap(dom);
-//console.log(msgMap);
+console.log(JSON.stringify(msgMap, undefined, 4));
 
 
 try {
@@ -45,7 +45,7 @@ try {
 }
 
 function processMessage(msg) {
-    console.log(extractFields(msg));
+    console.log(JSON.stringify(extractFields(msg), undefined, 4));
     console.log("\n");
 }
 
@@ -84,10 +84,10 @@ function extractFields(record) {
 function resolveFields(fieldArray) {
     var targetObj = {};
     while (fieldArray.length > 0) {
-	var field = fieldArray.shift();
-	var xpth = '//fix/messages/message[@name=\'' + '' + '\']/field'; // replace
-	var fields = xpath.select(xpth, dom); // replace
-	targetObj[field.tag] = field.val;
+		var field = fieldArray.shift();
+		var xpth = '//fix/messages/message[@name=\'' + '' + '\']/field'; // replace
+		var fields = xpath.select(xpth, dom); // replace
+		targetObj[field.tag] = field.val;
     }		     
     return targetObj;
 }
@@ -115,20 +115,36 @@ function buildTagTypeMap(dom) {
 
 function buildMessageFieldMap(dom) {
     var messages = {};
+
     var xpth = '//fix/messages/message';
     var msgDefs = xpath.select(xpth, dom);
-    for (var i = 0; i < msgDefs.length; i++) {
-	var msgName = msgDefs[i].attributes[0].value; // message name
-	var fields = msgDefs[i].getElementsByTagName('field');
-	var components = msgDefs[i].getElementsByTagName('components');
-	var msgFields = [];
 
-	for (var j = 0; j < fields.length; j++) {
-	    msgFields.push(fields[j].attributes[0].value);
-	}
-	messages[msgName] = msgFields;
-    }
-    return messages;
+    for (var i = 0; i < msgDefs.length; i++) {
+
+		var msgName = msgDefs[i].attributes[0].value; // message name
+		var fields = msgDefs[i].getElementsByTagName('field');
+		var components = msgDefs[i].getElementsByTagName('component');
+		var msgFields = [];
+
+		for (var j = 0; j < fields.length; j++) {
+		    msgFields.push(fields[j].attributes[0].value);
+		}
+
+		for (j = 0; j < components.length; j++) {
+			console.log(components[j].attributes[0].value + " / " + components[j].attributes[1].value);
+				
+			var subFields = components[j].getElementsByTagName('group');
+			console.log('\t' + subFields.length + " subfields");	
+		
+
+		}
+		
+		messages[msgName] = msgFields;
+
+
+   
+	 }
+	return messages;
 }
 
 function checkParams() {
