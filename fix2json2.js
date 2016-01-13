@@ -80,20 +80,13 @@ function extractFields(record, tags, msgMap) {
 							name: name,
 							value: value
 			});
-			json[name] = value;
 		}
 	}
 	return fieldArray;
 }
 
 function castFixType(value, fixType) {
-	if (_.contains(NUMERIC_TYPES, fixType)) {
-		console.log(value + " should be a number: " + value + " (" +  fixType + ")") ;
-		return Number(value);
-	} else {	
-		console.log(value + " not in numerics " + " (" +  fixType + ")");
-		return value;
-	}
+	return _.contains(NUMERIC_TYPES, fixType) ? Number(value) : value;
 }
 
 function resolveFields(fieldArray) {
@@ -111,6 +104,11 @@ function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     return new DOMParser().parseFromString(xml);
 }
+
+function mnemonify(tag, val) {
+	return TAGS[tag] ? (TAGS[tag].values ? (TAGS[tag].values[val] ? TAGS[tag].values[val] : val) : val) : val;
+}
+
 
 function buildTagTypeMap(dom) {
     var tags = {};
