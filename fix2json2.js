@@ -16,19 +16,17 @@ var GROUPS = {};
 var FIX_VER = undefined;
 var rd = {};
 var yaml = false;
-var NUMERIC_TYPES=['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM']
-
+var NUMERIC_TYPES=['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROUP', 'LENGTH', 'PRICEOFFSET'];
 
 checkParams();
-var dom = readDataDictionary(dictname);
-var tags = buildTagTypeMap(dom);
-console.log(JSON.stringify(tags, undefined, 4));
-var msgMap = buildMessageFieldMap(dom);
-console.log(JSON.stringify(msgMap, undefined, 4));
-
 
 try {
+
     var input = filename ? fs.createReadStream(filename) : process.stdin;
+	var dom = readDataDictionary(dictname);
+	var tags = buildTagTypeMap(dom);
+	var msgMap = buildMessageFieldMap(dom);
+
     rd = readline.createInterface({
 	    input: input,
 	    output: process.stdout,
@@ -36,7 +34,7 @@ try {
     });
     rd.on('line', function(line) {
 	    if (line.indexOf(delim) > -1) {
-		processMessage(line);
+			processMessage(line, tags, msgMap);
 	    }
     });
 } catch(mainException) {
@@ -44,8 +42,8 @@ try {
     process.exit(1);
 }
 
-function processMessage(msg) {
-    console.log(JSON.stringify(extractFields(msg), undefined, 4));
+function processMessage(msg, tags, msgMap) {
+    console.log(JSON.stringify(extractFields(msg, tags, msgMap), undefined, 1));
     console.log("\n");
 }
 
@@ -57,28 +55,45 @@ function processMessage(msg) {
 // //fix/components/component[@name='PositionAmountData']/group/field/@name
 // //fix/components/component/field[@name='SecurityXML']/@required
 
-function extractFields(record) {
+function extractFields(record, tags, msgMap) {
     var fieldArray = [];
     var fields = record.split(delim);
+	var json = {};
+
     for (var i = 0; i < fields.length; i++) {
     	var both = fields[i].split('=');
 		both[0].replace("\n", '').replace("\r", '');
 		if (both[0]) {
-	   		var xpth = '//fix/fields/field[@number=\'' + both[0] + '\']/@type'; // replace
-	    	var fieldDefs = xpath.select(xpth, dom); // replace
 	   		var tag = both[0];
-	    	var val = both[1]; // format this depending on type
-	    	var type = fieldDefs[0] ? fieldDefs[0].nodeValue : undefined;
-			var name = tags[tag] ? tags[tag].name : '';
+	    	var val = both[1]; 
+			var type; 
+			var name;
+			
+			if (tags[tag]) {
+				type = tags[tag].type ? tags[tag].type : undefined;
+				name = tags[tag].name ? tags[tag].name : undefined;
+			}
+			 
+			var value = castFixType(val, type);
+
 			fieldArray.push({ 
-				tag: tag, 
-				name: name, 
-				val: val,
-				type: type
-	    	});
+							name: name,
+							value: value
+			});
+			json[name] = value;
 		}
-    }
-    return fieldArray;
+	}
+	return fieldArray;
+}
+
+function castFixType(value, fixType) {
+	if (_.contains(NUMERIC_TYPES, fixType)) {
+		console.log(value + " should be a number: " + value + " (" +  fixType + ")") ;
+		return Number(value);
+	} else {	
+		console.log(value + " not in numerics " + " (" +  fixType + ")");
+		return value;
+	}
 }
 
 function resolveFields(fieldArray) {
@@ -129,20 +144,12 @@ function buildMessageFieldMap(dom) {
 		for (var j = 0; j < fields.length; j++) {
 		    msgFields.push(fields[j].attributes[0].value);
 		}
-
 		for (j = 0; j < components.length; j++) {
-			console.log(components[j].attributes[0].value + " / " + components[j].attributes[1].value);
-				
-			var subFields = components[j].getElementsByTagName('group');
-			console.log('\t' + subFields.length + " subfields");	
-		
-
+			//console.log(components[j].attributes[0].value + " / " + components[j].attributes[1].value);
+			//var subFields = components[j].getElementsByTagName('group');
+//			console.log('\t' + subFields.length + " subfields");	
 		}
-		
 		messages[msgName] = msgFields;
-
-
-   
 	 }
 	return messages;
 }
