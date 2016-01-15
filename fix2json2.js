@@ -138,17 +138,6 @@ function extractFields(record, tags, msgMap) {
 function castFixType(value, fixType) {
 	return _.contains(NUMERIC_TYPES, fixType) ? Number(value) : value;
 }
-
-function resolveFields(fieldArray) {
-    var targetObj = {};
-    while (fieldArray.length > 0) {
-		var field = fieldArray.shift();
-		var xpth = '//fix/messages/message[@name=\'' + '' + '\']/field'; // replace
-		var fields = xpath.select(xpth, dom); // replace
-		targetObj[field.tag] = field.val;
-    }		     
-    return targetObj;
-}
     
 function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
@@ -194,16 +183,19 @@ function pluckGroup(fieldArray, groupName) {
 }
 
 function buildTagTypeMap(dom) {
+
     var tags = {};
     var xpth = '//fix/fields/field';
     var fieldDefs = xpath.select(xpth, dom);
+
     for (var i = 0; i < fieldDefs.length; i++) {
+
 		var number = fieldDefs[i].attributes[0].nodeValue;
 		var name = fieldDefs[i].attributes[1].nodeValue;
 		var type = fieldDefs[i].attributes[2].nodeValue;
-
 		var values = [];
 		var list = fieldDefs[i].getElementsByTagName('value');
+
 		if (list) {
 			for (var j = 0; j < list.length; j++) {
 				values.push({
@@ -218,11 +210,31 @@ function buildTagTypeMap(dom) {
 	    	type: type,
 			values: values
 		};
+
     }
+
     return tags;
 }
 
+function flattenComponent(componentName, dom) {
+
+	var fieldNames = [];
+	var path = '//fix/components/component[@name=\'' + componentName + '\']/field';
+	var componentFields = xpath.select(path, dom);
+
+	for (var i = 0; i < componentFields.length; i++) {
+		if (componentFields[i] && componentFields[i].attributes[0]) {
+			fieldNames.push(componentFields[i].attributes[0].value);
+		} 
+	}
+
+	console.log(componentName + ": " + fieldNames.join(','));
+	return fieldNames;	
+	
+}
+
 function buildMessageFieldMap(dom) {
+     
     var messages = {};
 
     var xpth = '//fix/messages/message';
@@ -239,13 +251,14 @@ function buildMessageFieldMap(dom) {
 		    msgFields.push(fields[j].attributes[0].value);
 		}
 
-//		console.log(components)
-
 		for (j = 0; j < components.length; j++) {
 
-			var component = components[j].attributes[0].value;
-
-//			console.log(component);
+			var flds = flattenComponent(components[j].attributes[0].value, dom);
+	
+			var msgComp = components[j].attributes[0].value;
+			var component = xpath.select('//fix/components/component[@name=\'' + msgComp + '\']', dom);
+	
+//			console.log(msgComp + ": " + component);
 
 			//console.log(components[j].attributes[0].value + " / " + components[j].attributes[1].value);
 			//var subFields = components[j].getElementsByTagName('group');
@@ -253,28 +266,30 @@ function buildMessageFieldMap(dom) {
 		}
 		messages[msgName] = msgFields;
 	 }
+
 	return messages;
+
 }
 
 function checkParams() {
     if (process.argv.length < 3) {
-	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
-	console.error("\nfix2json will use standard input in the absence of a message file.");
-	process.exit(1);
+		console.error("Usage: fix2json [-p] <path to data dictionary xml file> <path to FIX message file>");
+		console.error("\nfix2json will use standard input if no input file is specified.");
+		process.exit(1);
     } else if (process.argv.length === 3) {
-	dictname = process.argv[2];
+		dictname = process.argv[2];
     } else if (process.argv.length === 4) {
-	if (process.argv[2] === '-p') {
-	    pretty = true;
-	    dictname = process.argv[3];
-	} else {
-	    dictname = process.argv[2];
-	    filename = process.argv[3];
-	}
+		if (process.argv[2] === '-p') {
+	    	pretty = true;
+	    	dictname = process.argv[3];
+		} else {
+	    	dictname = process.argv[2];
+	    	filename = process.argv[3];
+		}
     } else if (process.argv.length === 5) {
-	pretty = true;
-	dictname = process.argv[3];
-	filename = process.argv[4];
+		pretty = true;
+		dictname = process.argv[3];
+		filename = process.argv[4];
     }
 }
 
