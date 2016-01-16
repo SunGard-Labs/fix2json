@@ -26,12 +26,17 @@ var yaml = false;
 // constants & literals
 
 var NUMERIC_TYPES=['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROUP', 'LENGTH', 'PRICEOFFSET'];
-
 var FIX50SP2='5.0.2';
 var FIX50SP1='5.0.1';
 var FIX50='5.0.0';
 var FIX42='4.2.0';
 var FIX44='4.4.0';
+
+
+// globals
+
+var TAGS;
+var MESSAGES;
 
 // TODO:
 // refactor all dictionary operations into strategies indexed by data dictionary version
@@ -42,10 +47,10 @@ try {
 
     var input = filename ? fs.createReadStream(filename) : process.stdin;
 	var dom = readDataDictionary(dictname);
-	var tags = buildTagTypeMap(dom);
-	var msgMap = buildMessageFieldMap(dom);
+	TAGS = buildTagTypeMap(dom);
+	MESSAGES = buildMessageFieldMap(dom);
 
-	console.log(JSON.stringify(tags, undefined, 1));
+//	console.log(JSON.stringify(tags, undefined, 1));
 
 	//util.inspect(tags);
 
@@ -57,7 +62,7 @@ try {
 
     rd.on('line', function(line) {
 	    if (line.indexOf(delim) > -1) {
-			processMessage(line, tags, msgMap);
+			processMessage(line, TAGS, MESSAGES);
 	    }
     });
 
@@ -84,8 +89,8 @@ function processMessage(msg, tags, msgMap) {
 
 	}
 
-    console.log(JSON.stringify(extractFields(msg, tags, msgMap), undefined, 1));
-    console.log("\n");
+//    console.log(JSON.stringify(extractFields(msg, tags, msgMap), undefined, 1));
+  //  console.log("\n");
 }
 
 // //fix/fields/field[@number='35']
@@ -219,19 +224,53 @@ function buildTagTypeMap(dom) {
 function flattenComponent(componentName, dom) {
 
 	var fieldNames = [];
+
+	console.log('processing field in component: ' + componentName);
+
 	var path = '//fix/components/component[@name=\'' + componentName + '\']/field';
 	var componentFields = xpath.select(path, dom);
+	var componentGroups = xpath.select(path.replace('field', 'group'), dom);
+	var subComponents = xpath.select(path.replace('group', 'component'), dom);
+
+	// find all children of all types
+	// is type a field?  just append to fields
+	// is type a component?  recursively flatten
+	// is type a group? recursively flatten?
+	// append the output from flattening to the fieldNames[] array
 
 	for (var i = 0; i < componentFields.length; i++) {
 		if (componentFields[i] && componentFields[i].attributes[0]) {
+			console.log('component field: ' + componentFields[i].attributes[0].value);
 			fieldNames.push(componentFields[i].attributes[0].value);
 		} 
 	}
 
-	console.log(componentName + ": " + fieldNames.join(','));
+	if (componentGroups && componentGroups.length > 0) {
+		for (var j = 0; j < componentGroups.length; j++) {
+			fieldNames.concat(flattenGroup(componentGroups[j], dom));
+		}
+	}
+
+	if (subComponents && subComponents.length > 0) {
+		for (var j = 0; j < subComponents.length; j++) {
+			fieldNames.concat(flattenComponent(subComponents[j].attributes[0].value, subComponents[j]));
+		}	
+	}
+
+//	console.log('\n' + componentName + ": " + fieldNames.join(','));
 	return fieldNames;	
 	
 }
+
+function flattenGroup(node, dom) {
+
+	var groupFields = [];
+	console.log('grp: ' + node.attributes[0].value);
+
+
+	return [];
+}
+
 
 function buildMessageFieldMap(dom) {
      
@@ -243,29 +282,41 @@ function buildMessageFieldMap(dom) {
     for (var i = 0; i < msgDefs.length; i++) {
 
 		var msgName = msgDefs[i].attributes[0].value; // message name
-		var fields = msgDefs[i].getElementsByTagName('field');
-		var components = msgDefs[i].getElementsByTagName('component');
+		var fields = msgDefs[i].getElementsByTagName('field'); // fields for this message type
+		var components = msgDefs[i].getElementsByTagName('component'); // sub-components of this message type
+		var groups = msgDefs[i].getElementsByTagName('group'); // groups within this message type
 		var msgFields = [];
 
+		console.log('processing ' + msgName);
+
 		for (var j = 0; j < fields.length; j++) {
+			console.log('found field: ' + fields[j].attributes[0].value);
 		    msgFields.push(fields[j].attributes[0].value);
+		}
+
+		for (j = 0; j < groups.length; j++) {
+			console.log('found group: ' + groups[j]);
 		}
 
 		for (j = 0; j < components.length; j++) {
 
-			var flds = flattenComponent(components[j].attributes[0].value, dom);
+			console.log('found cmpnt: ' + components[j]);
+
+			var flds = flattenComponent(components[j].attributes[0].value, components[j]);
 	
 			var msgComp = components[j].attributes[0].value;
 			var component = xpath.select('//fix/components/component[@name=\'' + msgComp + '\']', dom);
 	
-//			console.log(msgComp + ": " + component);
-
-			//console.log(components[j].attributes[0].value + " / " + components[j].attributes[1].value);
-			//var subFields = components[j].getElementsByTagName('group');
-//			console.log('\t' + subFields.length + " subfields");	
 		}
+
 		messages[msgName] = msgFields;
+
+		console.log(msgFields);
+		console.log('done processing ' + msgName + ' from dictionary\n\n\n');
+				
 	 }
+
+	console.log(JSON.stringify(messages, undefined, 4));	
 
 	return messages;
 
