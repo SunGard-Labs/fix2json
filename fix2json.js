@@ -3,7 +3,6 @@
 var fs = require('fs');
 var util = require('util');
 var xpath = require('xpath');
-var xmlreader = require('xmlreader');
 var _ = require('underscore');
 var DOMParser = require('xmldom').DOMParser;
 var readline = require('readline');
