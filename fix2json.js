@@ -2,6 +2,7 @@
 
 var fs = require('fs');
 var xpath = require('xpath');
+var xmlreader = require('xmlreader');
 var _ = require('underscore');
 var DOMParser = require('xmldom').DOMParser;
 var readline = require('readline');
@@ -17,6 +18,8 @@ var GROUPS = {};
 var FIX_VER = undefined;
 var rd = {};
 var yaml = false;
+
+var NUMERIC_TYPES=['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROUP', 'LENGTH', 'PRICEOFFSET'];
 
 // some of these TODO's below are very speculative:
 //
@@ -89,7 +92,6 @@ function pluckGroup(tagArray, groupName) {
 		}
 		idx++;
 	}
-
 }
 
 function resolveFields(fieldArray) {
@@ -114,9 +116,9 @@ function processLine(line) {
 	var targetObj = resolveFields(extractFields(line));
 		
 	if (yaml) {
-		return YAML.stringify(targetObj, 256);
+	    return YAML.stringify(targetObj, 256);
 	} else {
-		return pretty ? JSON.stringify(targetObj, undefined, 4) : JSON.stringify(targetObj);
+	    return pretty ? JSON.stringify(targetObj, undefined, 2) : JSON.stringify(targetObj)
 	}
 
 }
@@ -128,12 +130,16 @@ function extractFields(record) {
     	var both = fields[i].split('=');
 		both[0].replace("\n", '').replace("\r", '');
 		if (both[1] !== undefined) {
-			var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
-			var val = mnemonify(both[0], both[1]);
-			fieldArray.push({
-				tag: tag, 
-				val: val
-			});
+		    var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
+		    var val = mnemonify(both[0], both[1]);
+		    if (TAGS[both[0]] && TAGS[both[0]].type) {
+			val = _.contains(NUMERIC_TYPES, TAGS[both[0]].type) ? Number(val) : val;
+		    }
+		    
+		    fieldArray.push({
+			tag: tag,
+			val: val
+		    });
 		}	
 	}
 	return fieldArray;
@@ -152,8 +158,30 @@ function dictionaryGroups(dom) {
 		for (var j = 0; j < fields.length; j++) {
 			var attr = fields[j].attributes[0].value;
 			GROUPS[groupName].push(attr);
-		}		
+		}	
+	      	var components = groupNodes[i].getElementsByTagName('component');
+		for (j = 0; j < components.length; j++) {
+		    //		  GROUPS[groupName] = GROUPS[groupName].concat(flattenComponent(components[j].attributes[0].value, dom));
+		    //console.log(components[i]);
+		}
 	}
+}
+
+function flattenComponent(componentName, dom) {
+
+        var fieldNames = [];
+	var path = '//fix/components/component[@name=\'' + componentName + '\']/field';
+        var componentFields = xpath.select(path, dom);
+	var componentGroups = xpath.select(path.replace('field', 'group'), dom);
+        var subComponents = xpath.select(path.replace('group', 'component'), dom);
+
+        if (subComponents && subComponents.length > 0) {
+                for (var j = 0; j < subComponents.length; j++) {
+                        fieldNames = fieldNames.concat(flattenComponent(subComponents[j].attributes[0].value, subComponents[j]));
+                }
+        }
+
+        return fieldNames;
 }
 
 function getFixVer(dom) {
@@ -165,6 +193,35 @@ function getFixVer(dom) {
 
 function readDataDictionary(fileLocation) {
 	var xml = fs.readFileSync(fileLocation).toString();
+	
+	/*	xmlreader.read(xml, function(err, res) {
+
+		if (err) {
+		    console.err('Could not read dictionary XML: ' + err);
+		    process.exit(1);
+		}
+
+		res.fix.components.component.each(function(i, component) { 
+			
+			component.field.each(function (i, field) {
+				console.log(field.attributes());
+			});
+
+			//			console.log(JSON.stringify(component.field, undefined, 1));
+
+			//message.fields.each(function (i, field) {
+				
+			//console.log(field.field.text());
+
+			//			});
+
+		});
+
+		//		console.log(JSON.stringify(res.fix, undefined, 2));
+		process.exit(0);
+
+	});
+	*/
 	var dom = new DOMParser().parseFromString(xml);
 	var nodes = xpath.select("//fix/fields/field", dom);
 
@@ -173,6 +230,7 @@ function readDataDictionary(fileLocation) {
 	for (var i = 0; i < nodes.length; i++) {
 		var tagNumber = nodes[i].attributes[0].value
 		var tagName = nodes[i].attributes[1].value;
+		var tagType = nodes[i].attributes[2].value;
 		var valElem = nodes[i].getElementsByTagName('value');
 		var values = {};
 	
@@ -182,10 +240,15 @@ function readDataDictionary(fileLocation) {
 
 		TAGS[tagNumber] = {
 			name: tagName,
+			type: tagType,
 			values: values
 		};
 	}
 	dictionaryGroups(dom);
+
+	//	console.log(JSON.stringify(GROUPS, undefined, 1) + "\n");
+	//console.log(JSON.stringify(TAGS, undefined, 1) + "\n");
+
 }
 
 function checkParams() {
