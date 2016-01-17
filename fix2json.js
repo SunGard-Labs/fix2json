@@ -137,8 +137,8 @@ function extractFields(record) {
 	    }
 	    val = mnemonify(both[0], val);
 	    fieldArray.push({
-	        tag: TAGS[both[0]].name,
-		val: val
+		    tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
+		    val: val
 	    });
 	}	
     }
