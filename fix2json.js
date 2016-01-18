@@ -191,12 +191,14 @@ function dictionaryGroups(dom) {
 	    }
 	*/
 
-	console.log('\n');
+	//console.log('\n');
 
     }
-    /*    for (var i = 0; i < groupNodes.length; i++) {
+
+    var groupNodes = xpath.select('//fix/components/component/group', dom);
+    for (var i = 0; i < groupNodes.length; i++) {
 	var groupName = groupNodes[i].attributes[0].value;
-	console.log('grp: ' + groupName);
+	//console.log('grp: ' + groupName);
 	GROUPS[groupName] = [];
 	var fields = groupNodes[i].getElementsByTagName('field');
 	for (var j = 0; j < fields.length; j++) {
@@ -204,7 +206,7 @@ function dictionaryGroups(dom) {
 	    GROUPS[groupName].push(attr);
 	}	
     }
-    */
+    
 }
 
 function getFixVer(dom) {
@@ -291,7 +293,7 @@ function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
-
+    /*
     var names = messageNames(dom);
 
     for (var x = 0; x < names.length; x++) {
@@ -302,7 +304,7 @@ function readDataDictionary(fileLocation) {
 
 
     process.exit(0);
-
+    */
     getFixVer(dom);
 	
     for (var i = 0; i < nodes.length; i++) {
