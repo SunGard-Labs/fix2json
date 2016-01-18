@@ -156,49 +156,17 @@ function dictionaryGroups(dom) {
 	
 	var components = msgNodes[j].getElementsByTagName('component');
 	var msgName = msgNodes[j].attributes[0].value;
-	//console.log(msgName);
 
 	for (var k = 0; k < components.length; k++) {
-
-	    //	    console.log('\t' + components[k].attributes[0].value);
-	    
-	    	    var componentName = components[k].attributes[0].value;
-
-	    //	    console.log('\tcomponentName: ' + componentName);
-
+	    var componentName = components[k].attributes[0].value;
 	    var xpth = '//fix/components/component[@name=\'' + componentName + '\']/group';
 	    var componentBlock = xpath.select(xpth, dom);
-
-	    // //fix/components/component[@name='Parties']/component
-	    
 	}
-
-	/*    
-	    for (var l = 0; l < groups.length; l++) {
-		
-		var groupName = groups[l].attributes[0].value;
-		var subType = groups[l].attributes[0].name;
-		
-		console.log('\t\t' + groupName + " (" + subType + ")");
-		
-
-			console.log(xpth);
-
-		var fields = xpath.select(xpth, dom);
-		console.log(util.inspect(fields));
-		
-		
-	    }
-	*/
-
-	//console.log('\n');
-
     }
 
     var groupNodes = xpath.select('//fix/components/component/group', dom);
     for (var i = 0; i < groupNodes.length; i++) {
 	var groupName = groupNodes[i].attributes[0].value;
-	//console.log('grp: ' + groupName);
 	GROUPS[groupName] = [];
 	var fields = groupNodes[i].getElementsByTagName('field');
 	for (var j = 0; j < fields.length; j++) {
@@ -293,6 +261,7 @@ function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
+
     /*
     var names = messageNames(dom);
 
@@ -324,7 +293,7 @@ function readDataDictionary(fileLocation) {
     }
     dictionaryGroups(dom);
 }
-// //fix/messages/message[@name='IOI']/field
+
 function checkParams() {
     if (process.argv.length < 3) {
 	console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
