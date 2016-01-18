@@ -149,21 +149,52 @@ function mnemonify(tag, val) {
     return TAGS[tag] ? (TAGS[tag].values ? (TAGS[tag].values[val] ? TAGS[tag].values[val] : val) : val) : val;
 }
 
-function dictionaryGroups(dom) {
+function buildMessageGraph(dom) {
     
-    var msgNodes = xpath.select(groupXPath[FIX_VER], dom);
+    var msgNodes = xpath.select('//fix/messages/message', dom);
+   
+    console.log('found ' + msgNodes.length + ' messages in this dictionary');
+
     for (var j = 0; j < msgNodes.length; j++) {
 	
-	var components = msgNodes[j].getElementsByTagName('component');
-	var msgName = msgNodes[j].attributes[0].value;
+	var msgName = msgNodes[j].attributes[0].value; // get current message name 
+	var components = msgNodes[j].getElementsByTagName('component'); // get all subcomponents for this message
 
+	console.log('indexing dictionary for  message ' + msgName + '...');
+
+	var msgFields = messageFields(msgName, dom); // get loose fields
+	
+	console.log('\tfound ' + msgFields.length + ' loose fields and ' + components.length + ' components in ' + msgName);
+	console.log('\tloose fields: ' + msgFields.join('/'));
+        
 	for (var k = 0; k < components.length; k++) {
-	    var componentName = components[k].attributes[0].value;
-	    var xpth = '//fix/components/component[@name=\'' + componentName + '\']/group';
-	    var componentBlock = xpath.select(xpth, dom);
-	}
-    }
 
+	    var componentName = components[k].attributes[0].value;
+	    var groups = componentGroups(componentName, dom);
+	    
+	    console.log('\t\tfound ' + groups.length + ' groups in ' + componentName);
+	    
+	    for (var l = 0; l < groups.length; l++) {
+
+		var groupName = groups[l].attributes && groups[l].attributes.length > 0 ? groups[l].attributes[0].value : undefined;
+		var fields = groupFields(groupName, dom);
+		
+		console.log('\t\t\tfound ' + fields.length + ' in group ' + groupName);
+
+		for (var m = 0; m < fields.length; m++) {
+		    var fieldName = fields[m].attributes && fields[m].attributes.length > 0 ? fields[m].attributes[0].value : undefined;
+		    console.log('\t\t\t\tfound field: ' + fieldName);
+		}
+	    }
+	}
+	
+	console.log('\n');
+
+    }
+}
+
+
+function dictionaryGroups(dom) {
     var groupNodes = xpath.select('//fix/components/component/group', dom);
     for (var i = 0; i < groupNodes.length; i++) {
 	var groupName = groupNodes[i].attributes[0].value;
@@ -174,7 +205,6 @@ function dictionaryGroups(dom) {
 	    GROUPS[groupName].push(attr);
 	}	
     }
-    
 }
 
 function getFixVer(dom) {
@@ -219,7 +249,6 @@ function messageFields(messageName, dom) {
 	fields.push(flds[i].attributes[0].value);
     }
     return fields;
-
 }
 
 function messageComponents(messageName, dom) {
@@ -232,7 +261,6 @@ function messageComponents(messageName, dom) {
 	components.push(cmps[i].attributes[0].value);
     }
     return components;
-
 }
 
 function componentGroups(componentName, dom) {
@@ -262,18 +290,9 @@ function readDataDictionary(fileLocation) {
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
 
-    /*
-    var names = messageNames(dom);
+    //    buildMessageGraph(dom);
+    //process.exit(0);
 
-    for (var x = 0; x < names.length; x++) {
-	console.log(names[x]);
-	console.log('\tcomponents: ' + componentNames(names[x].name, dom).join(' / '));
-	console.log('\tfields: ' + messageFields(names[x].name, dom).join(' / '));
-    }
-
-
-    process.exit(0);
-    */
     getFixVer(dom);
 	
     for (var i = 0; i < nodes.length; i++) {
