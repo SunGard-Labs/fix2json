@@ -45,14 +45,14 @@ try {
 		var comp = msgs[i].component;
 		if (comp && comp.group > 0) {
 			for (var j = 0; j < comp.group.length; j++) {
-				console.log(JSON.stringify(groupFields(comp.group[i].name), undefined, 1));			
+				//console.log(JSON.stringify(groupFields(comp.group[i].name), undefined, 1));			
 			}	
 		} else {
-			console.log(JSON.stringify(comp, undefined, 1));
+//			console.log(JSON.stringify(comp, undefined, 1));
 		}
 	}
 
-	process.exit(0);
+//	process.exit(0);
 	
 
 	var input = filename ? fs.createReadStream(filename) : process.stdin;
@@ -181,6 +181,8 @@ function resolveFields(fieldArray) {
 
 	var messageDef = _.findWhere(dictionary.fix.messages.message, { msgtype: msgType.val });
 
+	var counter = 0;
+	var output = new Array(fieldArray.length);
 	while (fieldArray.length > 0) {
 
 	    var field = fieldArray.shift();
@@ -194,17 +196,26 @@ function resolveFields(fieldArray) {
 
 		var tagDef = _.findWhere(dictionary.fix.fields.field, { number: key } );
 
+		targetObj[key] = mnemonify(key, val).value;
+
 		if (!tagDef) {
-			console.error('ERROR: could not discern field type for tag # ' + key);
+
+
 		} else {
+
+			var nemo = mnemonify(key, val);			
+
+//			targetObj[nemo.tag] = nemo.value;
+	
 			if (tagDef.type === 'NUMINGROUP') {
-				console.log(tagDef.name + ' is a group');
-				console.log('fields: ' + groupFields(tagDef.name).join('/'));
+
+
+
 			} else {
-				var mnemonic = mnemonify(key, val);
-				targetObj[mnemonic.tag] = mnemonic.value;
+
 			}
 		}
+
 	} 
 	return targetObj;
 }
@@ -241,30 +252,39 @@ function extractFields(record) {
 }
 
 function mnemonify(tag, val) {
-	var tag = _.findWhere(dictionary.fix.fields.field, { number: tag });
+	
+	console.log('\n' + tag + '->' + val);
 
+	var tag = _.findWhere(dictionary.fix.fields.field, { number: tag });
+	console.log(tag);
 	if (!tag) {
+		console.log(tag + '->' + val + '\n');
 		return {tag: tag, value: val};
 	} else {
 		if (tag.value && tag.value.length > 0) {
 			var numeric = _.contains(NUMERIC_TYPES, tag.type);
-			var value = _.findWhere(tag.value, { enum: val });
-			if (value && value.description) {
-				return { tag: tag.name, value: value.description.replace(/_/g, ' ') };
+			var nemoVal = _.findWhere(tag.value, { enum: val });
+			var name = "";
+			if (nemoVal && nemoVal.description) {
+				name = tag.name;
+				value = nemoVal.description.replace(/_/g, ' ');
+				console.log(name + '->' + value + '\n');
+				return { tag:  name, value: value };
 			} else {
-				return numeric ?
-							{
-								tag: tag.name, 
-								value: Number(val) 
-							} 
-							: 
-							{ 
-								tag: tag.name,
-								value: val
-							};
+				if (numeric) {
+					name = tag.name;
+					console.log(name + '->' + Number(val) + '\n');
+					return { tag: name, value: Number(val) };
+				} else {
+					name = tag.name;
+					console.log(name + '->' + val + '\n');
+					return { tag: name, value: val };
+				}
 			}
 		} else {
-			return { tag: tag, value: val };
+			var name = tag.name;
+			console.log(name + '->' + val + '\n');
+			return { tag: name, value: val };
 		}
 	}
 }
