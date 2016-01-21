@@ -41,25 +41,16 @@ try {
 	readDataDictionary(dictname);
 
 	var msgs = dictionary.fix.messages.message;
-
 	for (var i = 0; i < msgs.length; i++) {
-
 		var comp = msgs[i].component;
-
 		if (comp && comp.group > 0) {
-			
 			for (var j = 0; j < comp.group.length; j++) {
-
 				console.log(JSON.stringify(groupFields(comp.group[i].name), undefined, 1));			
 			}	
 		} else {
 			console.log(JSON.stringify(comp, undefined, 1));
 		}
-	
-//		console.log(JSON.stringify(msgs[i].component, undefined, 1) + '\n');
-
 	}
-
 
 	process.exit(0);
 	
@@ -215,9 +206,7 @@ function resolveFields(fieldArray) {
 			}
 		}
 	} 
-
 	return targetObj;
-
 }
 
 
@@ -281,9 +270,6 @@ function mnemonify(tag, val) {
 }
 
 function messageFields(messageName) {
-
-	console.log('finding fields for: ' + messageName);
-
     var fields = [];
     var messageDef = _.findWhere(dictionary.fix.messages.message, { name: messageName });
 
@@ -292,9 +278,6 @@ function messageFields(messageName) {
 			fields.push(messageDef.field[i].name);
 		}
 	}
-
-	console.log('returning ' + fields.length + ' fields for ' + messageName);
-
     return fields;
 }
 
