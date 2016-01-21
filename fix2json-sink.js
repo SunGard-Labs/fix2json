@@ -93,11 +93,11 @@ function pluckGroup(tagArray, groupName) {
 			var newGroup = pluckGroup(tagArray, key);
 		 	member[key.substring('No'.length)] = newGroup;
 		} else if (key === firstProp && idx > 0) {
-			group.push(member);
+			group.unshift(member);
 			member = {};
 			member[key] = val;
 		} else if (!_.contains(GROUPS[groupName], key)) {
-			tagArray.push(tag)
+			tagArray.unshift(tag)
 			group.push(member);
  			return group;
 		} else {
@@ -196,14 +196,13 @@ function resolveFields(fieldArray) {
 
 		var tagDef = _.findWhere(dictionary.fix.fields.field, { number: key } );
 
-		targetObj[key] = mnemonify(key, val).value;
+		var nemo = mnemonify(key, val);
+		targetObj[nemo.tag] = nemo.value;;
 
 		if (!tagDef) {
 
 
 		} else {
-
-			var nemo = mnemonify(key, val);			
 
 //			targetObj[nemo.tag] = nemo.value;
 	
@@ -253,38 +252,31 @@ function extractFields(record) {
 
 function mnemonify(tag, val) {
 	
-	console.log('\n' + tag + '->' + val);
+//	console.log('\n' + tag + '->' + val);
 
-	var tag = _.findWhere(dictionary.fix.fields.field, { number: tag });
-	console.log(tag);
-	if (!tag) {
-		console.log(tag + '->' + val + '\n');
+	var tagDef = _.findWhere(dictionary.fix.fields.field, { number: tag });
+
+
+	if (!tagDef) {
+//		console.log(tag + '->' + val + '\n');
 		return {tag: tag, value: val};
 	} else {
-		if (tag.value && tag.value.length > 0) {
-			var numeric = _.contains(NUMERIC_TYPES, tag.type);
-			var nemoVal = _.findWhere(tag.value, { enum: val });
+		if (tagDef.value && tagDef.value.length > 0) {
+			var numeric = _.contains(NUMERIC_TYPES, tagDef.type);
+			var nemoVal = _.findWhere(tagDef.value, { enum: val });
 			var name = "";
 			if (nemoVal && nemoVal.description) {
-				name = tag.name;
+				name = tagDef.name + ' (' + tagDef.number + '/' + tagDef.type + ')';
 				value = nemoVal.description.replace(/_/g, ' ');
-				console.log(name + '->' + value + '\n');
-				return { tag:  name, value: value };
+//				console.log(name + '->' + value + '\n');
+				return { tag:  name, value: numeric ? Number(value) : value };
 			} else {
-				if (numeric) {
-					name = tag.name;
-					console.log(name + '->' + Number(val) + '\n');
-					return { tag: name, value: Number(val) };
-				} else {
-					name = tag.name;
-					console.log(name + '->' + val + '\n');
-					return { tag: name, value: val };
-				}
+				name = tagDef.name;
+				return { tag: name, value: numeric ? Number(val) : val };
 			}
 		} else {
-			var name = tag.name;
-			console.log(name + '->' + val + '\n');
-			return { tag: name, value: val };
+//			console.log(name + '->' + val + '\n');
+			return { tag: tagDef.name, value: val };
 		}
 	}
 }
