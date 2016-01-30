@@ -828,6 +828,7 @@
   </message>
   <message name='MarketDataIncrementalRefresh' msgcat='app' msgtype='X'>
    <component name='ApplicationSequenceControl' required='N' />
+   <field name='MatchEventIndicator' required='Y' />
    <field name='MDBookType' required='N' />
    <field name='MDFeedType' required='N' />
    <field name='TradeDate' required='N' />
@@ -4583,7 +4584,9 @@
     <field name='SecurityID' required='N' />
     <field name='SecurityDesc' required='N' />
     <field name='SecurityIDSource' required='N' />
-   </group>
+    <field name='AggressorSide' required='N' />
+    <field name='TradingReferenceDate' required='N' />
+  </group>
   </component>
   <component name='UnderlyingAmount'>
    <group name='NoUnderlyingAmounts' required='N'>
@@ -10017,6 +10020,8 @@
    <value enum='3' description='TERMINATE_UNASSIGN' />
   </field>
   <field number='5796' name='TradingReferenceDate' type='LOCALMKTDATE'/>
+  <field number='5797' name='AggressorSide' type='INT' />
+  <field number='5799' name='MatchEventIndicator' type='STRING' />
   <field number='9787' name='DisplayFactor' type='FLOAT' />
   <field number='9850' name='MinCabPrice' type='PRICE' />
  </fields>

@@ -43,6 +43,8 @@ groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
 groupXPath['1.1.0'] = '//fix/messages/message/group';
 
+// END OF GROUP ITEM FUNCTION?  if (endOfGroup(fieldNaame, groupName)) {}
+
 try {
 
     readDataDictionary(dictname);
@@ -56,7 +58,8 @@ try {
 
     rd.on('line', function(line) {
         if (line.indexOf(delim) > -1) {
-            console.log(decoder.write(processLine(line)));
+ 	    var msg = decoder.write(processLine(line));
+	    console.log(msg ? msg : '\nDKM!\n');
         }
     });
 
@@ -65,52 +68,85 @@ try {
     process.exit(1);
 }
 
-function pluckGroup(tagArray, groupName) {
+function pluckGroup(tagArray, messageType, groupName) {
     var group = [];
     var member = {};
     var firstProp = undefined;
     var idx = 0;
 
+    console.log("plucking %s from %s", groupName, messageType);
+    console.log("fields are: %s", GROUPS[messageType][groupName]); 
+
     while (tagArray.length > 0) {
         var tag = tagArray.shift();
         var key = tag.tag;
         var val = tag.val;
+
         if (idx === 0) {
             firstProp = key;
-            member[key] = val;
-        } else if (_.contains(Object.keys(GROUPS), key)) {
-            member[key] = val;
-            var newGroup = pluckGroup(tagArray, key);
+        } else if (_.contains(Object.keys(GROUPS[messageType][groupName]), key)) {
+            var newGroup = pluckGroup(messageType, tagArray, key);
             member[key.substring('No'.length)] = newGroup;
         } else if (key === firstProp && idx > 0) {
             group.push(member);
             member = {};
-            member[key] = val;
         } else if (!_.contains(GROUPS[groupName], key)) {
-            tagArray.push(tag)
+	    tagArray.push(tag)
             group.push(member);
             return group;
-        } else {
-            member[key] = val;
-        }
+        } 
+
+        member[key] = val;
+
         idx++;
     }
 }
 
 function resolveFields(fieldArray) {
+
     targetObj = {};
     var group = [];
+
+    console.log(fieldArray);
+
+    //    var msgName = TAGS['35'].name;
+
+    //    console.log(typeTag);
+    /**
+
+     */
+    //    process.exit();
+
+    var msgType = _.findWhere(fieldArray, { tag: 'MsgType' });
+    console.log(msgType);
+
+    var refGroups = GROUPS[msgType.tag];
+
+    console.log('grp: ' + refGroups);
+    /*
+    if (msgType && msgType.val) {
+	msgType = msgType.val;
+    } else {
+	console.error("Can't find message type, skipping");    
+	return {};
+    }
+    */
     while (fieldArray.length > 0) {
-        var field = fieldArray.shift();
-        var key = field.tag;
+        
+	var field = fieldArray.shift();
+	var key = field.tag;
         var val = field.val;
+
+        console.log("Processing tag %s, for message type %s.", key + '/' + val, msgType.name);
+
         if (_.contains(Object.keys(GROUPS), key)) {
             targetObj[key] = val;
-            var newGroup = pluckGroup(fieldArray, key);
+            var newGroup = pluckGroup(msgType, fieldArray, key);
             targetObj[key.substring('No'.length)] = newGroup;
         } else {
             targetObj[key] = val;
         }
+
     }
     return targetObj;
 }
@@ -138,8 +174,10 @@ function extractFields(record) {
             val = mnemonify(both[0], val);
             fieldArray.push({
                 tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
-                val: val
-            });
+		val: val,
+		number: both[0],
+      		raw: both[1]
+	    });
         }
     }
     return fieldArray;
@@ -150,16 +188,50 @@ function mnemonify(tag, val) {
 }
 
 function dictionaryGroups(dom) {
-    var groupNodes = xpath.select('//fix/components/component/group', dom);
-    for (var i = 0; i < groupNodes.length; i++) {
-        var groupName = groupNodes[i].attributes[0].value;
-        GROUPS[groupName] = [];
-        var fields = groupNodes[i].getElementsByTagName('field');
-        for (var j = 0; j < fields.length; j++) {
-            var attr = fields[j].attributes[0].value;
-            GROUPS[groupName].push(attr);
-        }
+    
+    var components = xpath.select('//fix/components/component', dom);
+    var componentGroupFields = {};
+
+    for (var j = 0; j < components.length; j++) {
+	var componentName = components[j].attributes[0].value;
+	componentGroupFields[componentName] = {};
+	var componentGroups = components[j].getElementsByTagName('group');
+    
+	for (var k = 0; k < componentGroups.length; k++) {
+
+	    var componentGroupName = componentGroups[k].attributes[0].value;
+	    componentGroupFields[componentName][componentGroupName] = [];
+	    var groupFields = componentGroups[k].getElementsByTagName('field');
+	    
+	    for (var l = 0; l < groupFields.length; l++) {
+		var fieldName = groupFields[l].attributes[0].value;
+	    
+		componentGroupFields[componentName][componentGroupName].push(fieldName);		
+	    }
+	}
     }
+
+    var messages = xpath.select('/fix/messages/message', dom);
+
+    for (var m = 0; m < messages.length; m++) {
+	var messageName = messages[m].attributes[0].value;
+	GROUPS[messageName] = {};
+	GROUPS[messageName];
+	var messageComponents = messages[m].getElementsByTagName('component');
+	for (var n = 0; n < messageComponents.length; n++) {
+	    var componentName = messageComponents[n].attributes[0].value;
+	    var groupNames = Object.keys(componentGroupFields[componentName]);
+	    
+	    for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
+		GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
+	    }
+	}
+    }
+
+    console.log('\n' + JSON.stringify(GROUPS, undefined, 1) + '\n');
+    console.log('\n' + JSON.stringify(TAGS, undefined, 1) + '\n');
+    //process.exit(0);
+
 }
 
 function getFixVer(dom) {
