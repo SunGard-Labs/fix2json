@@ -828,7 +828,6 @@
   </message>
   <message name='MarketDataIncrementalRefresh' msgcat='app' msgtype='X'>
    <component name='ApplicationSequenceControl' required='N' />
-   <field name='MatchEventIndicator' required='Y' />
    <field name='MDBookType' required='N' />
    <field name='MDFeedType' required='N' />
    <field name='TradeDate' required='N' />
@@ -4522,6 +4521,7 @@
     <field name='Currency' required='N' />
     <field name='MDEntrySize' required='N' />
     <component name='SecSizesGrp' required='N' />
+    <field name='MatchEventIndicator' required='N' />
     <field name='LotType' required='N' />
     <field name='MDEntryDate' required='N' />
     <field name='MDEntryTime' required='N' />
