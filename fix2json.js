@@ -15,6 +15,7 @@ var dictname;
 var filename;
 var TAGS = {};
 var GROUPS = {};
+var MESSAGES = [];
 var FIX_VER = undefined;
 var rd = {};
 var yaml = false;
@@ -69,79 +70,60 @@ try {
 }
 
 function pluckGroup(tagArray, messageType, groupName) {
+    
     var group = [];
     var member = {};
     var firstProp = undefined;
     var idx = 0;
-
-    console.log("plucking %s from %s", groupName, messageType);
-    console.log("fields are: %s", GROUPS[messageType][groupName]); 
-
+    var groupFields = GROUPS[messageType][groupName];
+    
     while (tagArray.length > 0) {
+
         var tag = tagArray.shift();
         var key = tag.tag;
         var val = tag.val;
 
         if (idx === 0) {
             firstProp = key;
-        } else if (_.contains(Object.keys(GROUPS[messageType][groupName]), key)) {
-            var newGroup = pluckGroup(messageType, tagArray, key);
+        } else if (_.contains(Object.keys(GROUPS[messageType]), key)) { // check if this is in groups for msgtype
+            var newGroup = pluckGroup(tagArray, messageType, key);
             member[key.substring('No'.length)] = newGroup;
         } else if (key === firstProp && idx > 0) {
             group.push(member);
             member = {};
-        } else if (!_.contains(GROUPS[groupName], key)) {
+        } else if (!_.contains(groupFields, key)) {
 	    tagArray.push(tag)
             group.push(member);
             return group;
         } 
 
         member[key] = val;
-
         idx++;
+
     }
+
 }
 
 function resolveFields(fieldArray) {
 
     targetObj = {};
     var group = [];
-
-    console.log(fieldArray);
-
-    //    var msgName = TAGS['35'].name;
-
-    //    console.log(typeTag);
-    /**
-
-     */
-    //    process.exit();
-
+    
     var msgType = _.findWhere(fieldArray, { tag: 'MsgType' });
-    console.log(msgType);
+    var msgTypeName = _.findWhere(MESSAGES, { type: msgType.raw });
+    var refGroups = GROUPS[msgTypeName.name];
 
-    var refGroups = GROUPS[msgType.tag];
-
-    console.log('grp: ' + refGroups);
-    /*
-    if (msgType && msgType.val) {
-	msgType = msgType.val;
-    } else {
-	console.error("Can't find message type, skipping");    
-	return {};
-    }
-    */
     while (fieldArray.length > 0) {
         
 	var field = fieldArray.shift();
 	var key = field.tag;
         var val = field.val;
+	var raw = field.raw;
+	var num = field.num;
 
-        console.log("Processing tag %s, for message type %s.", key + '/' + val, msgType.name);
-
-        if (_.contains(Object.keys(GROUPS), key)) {
+        if (_.contains(Object.keys(refGroups), key)) {
             targetObj[key] = val;
-            var newGroup = pluckGroup(msgType, fieldArray, key);
+            var newGroup = pluckGroup(fieldArray, msgTypeName.name, key);
             targetObj[key.substring('No'.length)] = newGroup;
         } else {
             targetObj[key] = val;
@@ -175,7 +157,7 @@ function extractFields(record) {
             fieldArray.push({
                 tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
 		val: val,
-		number: both[0],
+		num: both[0],
       		raw: both[1]
 	    });
         }
@@ -211,12 +193,12 @@ function dictionaryGroups(dom) {
 	}
     }
 
-    var messages = xpath.select('/fix/messages/message', dom);
+    var names = messageNames(dom);
+    var messages = xpath.select('//fix/messages/message', dom);
 
     for (var m = 0; m < messages.length; m++) {
 	var messageName = messages[m].attributes[0].value;
 	GROUPS[messageName] = {};
-	GROUPS[messageName];
 	var messageComponents = messages[m].getElementsByTagName('component');
 	for (var n = 0; n < messageComponents.length; n++) {
 	    var componentName = messageComponents[n].attributes[0].value;
@@ -227,11 +209,6 @@ function dictionaryGroups(dom) {
 	    }
 	}
     }
-
-    console.log('\n' + JSON.stringify(GROUPS, undefined, 1) + '\n');
-    console.log('\n' + JSON.stringify(TAGS, undefined, 1) + '\n');
-    //process.exit(0);
-
 }
 
 function getFixVer(dom) {
@@ -250,18 +227,15 @@ function messageNames(dom) {
         messages.push({
             type: msgs[i].attributes[2].value,
             name: msgs[i].attributes[0].value
-        });
+	});
     }
-    return messages;
+    MESSAGES = messages;
 }
 
 function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
-
-    //    buildMessageGraph(dom);
-    //process.exit(0);
 
     getFixVer(dom);
 
@@ -280,6 +254,7 @@ function readDataDictionary(fileLocation) {
             values: values
         };
     }
+    messageNames(dom);
     dictionaryGroups(dom);
 }
 
