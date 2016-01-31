@@ -44,8 +44,6 @@ groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
 groupXPath['1.1.0'] = '//fix/messages/message/group';
 
-// END OF GROUP ITEM FUNCTION?  if (endOfGroup(fieldNaame, groupName)) {}
-
 try {
 
     readDataDictionary(dictname);
@@ -60,7 +58,7 @@ try {
     rd.on('line', function(line) {
         if (line.indexOf(delim) > -1) {
  	    var msg = decoder.write(processLine(line));
-	    console.log(msg ? msg : '\nDKM!\n');
+	    console.log(msg);
         }
     });
 
@@ -69,38 +67,67 @@ try {
     process.exit(1);
 }
 
-function pluckGroup(tagArray, messageType, groupName) {
+function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     
     var group = [];
     var member = {};
     var firstProp = undefined;
     var idx = 0;
     var groupFields = GROUPS[messageType][groupName];
+    var groupAnchor;
+
+    //    console.log(tagArray.length + ' items passed in ');
     
-    while (tagArray.length > 0) {
+    var idx = 0;
+	
+    var tag = tagArray.shift();
+    groupAnchor = tag.tag; // first one
+    //console.log('groupAnchor: ' + groupAnchor + ', ' + tagArray.length);
 
-        var tag = tagArray.shift();
-        var key = tag.tag;
-        var val = tag.val;
+    do {	
+	
+	//console.log('current tag: ' + JSON.stringify(tag));
 
-        if (idx === 0) {
-            firstProp = key;
-        } else if (_.contains(Object.keys(GROUPS[messageType]), key)) { // check if this is in groups for msgtype
-            var newGroup = pluckGroup(tagArray, messageType, key);
-            member[key.substring('No'.length)] = newGroup;
-        } else if (key === firstProp && idx > 0) {
-            group.push(member);
-            member = {};
-        } else if (!_.contains(groupFields, key)) {
-	    tagArray.push(tag)
-            group.push(member);
-            return group;
-        } 
+	var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
+	var val = tag.val;
 
-        member[key] = val;
-        idx++;
+	var found = _.contains(groupFields, key);
+	// console.log(found + ' ' + groupName + ' -> ' + key + ': ' + groupFields.join('/') + '\n');
+	
+	if (idx === 0) {
 
-    }
+	    groupAnchor = key;
+	    member[key] = val;
+	    tag = tagArray.shift();
+	    idx++;
+	    continue;
+
+	} else if (groupAnchor === key) {
+
+	    //console.log('found new ' + key + ' member');
+	    group.push(member);
+	    member = {};
+	    member[key] = val;
+	    tag = tagArray.shift();
+	    idx++;
+	    continue;
+
+	} else if (!_.contains(groupFields, key))  {
+
+	    group.push(member);
+	    //console.log('found ' + group.length + ' members, was looking for ' + numInGroup);
+	    tagArray.unshift(tag); // put this guy back
+	    return group;
+
+	} else {
+	    member[key] = val;
+	    tag = tagArray.shift();
+	    idx++;
+	    continue;
+	}
+
+
+    } while (group.length < numInGroup || tagArray.length > 0);
 
 }
 
@@ -121,28 +148,32 @@ function resolveFields(fieldArray) {
 	var raw = field.raw;
 	var num = field.num;
 
-        if (_.contains(Object.keys(refGroups), key)) {
-            targetObj[key] = val;
-            var newGroup = pluckGroup(fieldArray, msgTypeName.name, key);
-            targetObj[key.substring('No'.length)] = newGroup;
-        } else {
-            targetObj[key] = val;
+	targetObj[key] = val;
+
+        if (_.contains(Object.keys(refGroups), key)) {	    
+            var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
+	    targetObj[key.substring('No'.length)] = newGroup;
         }
 
     }
+
     return targetObj;
+
 }
 
 function processLine(line) {
+
     var targetObj = resolveFields(extractFields(line));
     if (yaml) {
         return YAML.stringify(targetObj, 256);
     } else {
         return pretty ? JSON.stringify(targetObj, undefined, 2) : JSON.stringify(targetObj)
     }
+
 }
 
 function extractFields(record) {
+
     var fieldArray = [];
     var fields = record.split(delim);
     for (var i = 0; i < fields.length; i++) {
@@ -162,7 +193,10 @@ function extractFields(record) {
 	    });
         }
     }
+
+        console.log(fieldArray);
     return fieldArray;
+
 }
 
 function mnemonify(tag, val) {
@@ -209,16 +243,20 @@ function dictionaryGroups(dom) {
 	    }
 	}
     }
+
 }
 
 function getFixVer(dom) {
+
     var fixMaj = xpath.select("//fix/@major", dom)[0].value;
     var fixMin = xpath.select("//fix/@minor", dom)[0].value;
     var fixSp = xpath.select("//fix/@servicepack", dom)[0].value;
     FIX_VER = [fixMaj, fixMin, fixSp].join('.');
+
 }
 
 function messageNames(dom) {
+
     var messages = [];
     var path = '//fix/messages/message';
     var msgs = xpath.select(path, dom);
@@ -229,10 +267,13 @@ function messageNames(dom) {
             name: msgs[i].attributes[0].value
 	});
     }
+
     MESSAGES = messages;
+
 }
 
 function readDataDictionary(fileLocation) {
+
     var xml = fs.readFileSync(fileLocation).toString();
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
@@ -254,11 +295,14 @@ function readDataDictionary(fileLocation) {
             values: values
         };
     }
+
     messageNames(dom);
     dictionaryGroups(dom);
+
 }
 
 function checkParams() {
+
     if (process.argv.length < 3) {
         console.error("Usage: fix2json [-p] <data dictionary xml file> [path to FIX message file]");
         console.error("\nfix2json will use standard input in the absence of a message file.");
@@ -281,4 +325,5 @@ function checkParams() {
     if (process.argv[1].indexOf('yaml') > 0) {
         yaml = true;
     }
+
 }
