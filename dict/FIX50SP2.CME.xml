@@ -919,6 +919,9 @@
   </message>
   <message name='SecurityDefinition' msgcat='app' msgtype='d'>
    <component name='ApplicationSequenceControl' required='N' />
+   <field name='MatchEventIndicator' required='Y' />
+   <field name='UserDefinedInstrument' required='N' />
+   <field name='PriceDisplayFormat' required='N' />
    <field name='TradingReferenceDate' required='N' />
    <field name='DisplayFactor' required='N' />
    <field name='MinCabPrice' required='N' />
@@ -10024,5 +10027,8 @@
   <field number='5799' name='MatchEventIndicator' type='STRING' />
   <field number='9787' name='DisplayFactor' type='FLOAT' />
   <field number='9850' name='MinCabPrice' type='PRICE' />
+  <field number='6937' name='Asset' type='STRING' />
+  <field number='9779' name='UserDefinedInstrument' type='STRING' />
+  <field number='9800' name='PriceDisplayFormat' type='INT' />
  </fields>
 </fix>
