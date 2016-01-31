@@ -194,7 +194,7 @@ function extractFields(record) {
         }
     }
 
-        console.log(fieldArray);
+    //        console.log(fieldArray);
     return fieldArray;
 
 }
