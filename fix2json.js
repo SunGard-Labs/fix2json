@@ -76,23 +76,19 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     var groupFields = GROUPS[messageType][groupName];
     var groupAnchor;
 
-    //    console.log(tagArray.length + ' items passed in ');
-    
     var idx = 0;
 	
     var tag = tagArray.shift();
     groupAnchor = tag.tag; // first one
-    //console.log('groupAnchor: ' + groupAnchor + ', ' + tagArray.length);
 
     do {	
 	
-	//console.log('current tag: ' + JSON.stringify(tag));
-
 	var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
 	var val = tag.val;
+	var num = tag.num;
 
 	var found = _.contains(groupFields, key);
-	// console.log(found + ' ' + groupName + ' -> ' + key + ': ' + groupFields.join('/') + '\n');
+	var type = TAGS[num].type;
 	
 	if (idx === 0) {
 
@@ -104,7 +100,6 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 	} else if (groupAnchor === key) {
 
-	    //console.log('found new ' + key + ' member');
 	    group.push(member);
 	    member = {};
 	    member[key] = val;
@@ -112,10 +107,16 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 	    idx++;
 	    continue;
 
+	} else if (type === 'NUMINGROUP') {
+		
+		member[key] = val;
+		member[key.substring('No'.length)] = pluckGroup(tagArray, messageType, key, val);
+		continue;
+		
+
 	} else if (!_.contains(groupFields, key))  {
 
 	    group.push(member);
-	    //console.log('found ' + group.length + ' members, was looking for ' + numInGroup);
 	    tagArray.unshift(tag); // put this guy back
 	    return group;
 
@@ -187,9 +188,9 @@ function extractFields(record) {
             val = mnemonify(both[0], val);
             fieldArray.push({
                 tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
-		val: val,
-		num: both[0],
-      		raw: both[1]
+				val: val,
+				num: both[0],
+      			raw: both[1]
 	    });
         }
     }
