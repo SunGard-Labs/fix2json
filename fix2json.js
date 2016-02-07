@@ -44,10 +44,19 @@ groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
 groupXPath['1.1.0'] = '//fix/messages/message/group';
 
+// TODO: NoUnderlyings and NoLegs still a problem
+// TODO: groupFields coming back as array of key:val vs. array of key names
+
 try {
 
     readDataDictionary(dictname);
+
+	
+
     var input = filename ? fs.createReadStream(filename) : process.stdin;
+
+//	console.log(GROUPS);
+//	process.exit(0);
 
     rd = readline.createInterface({
         input: input,
@@ -81,54 +90,72 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     var tag = tagArray.shift();
     groupAnchor = tag.tag; // first one
 
+//	console.log('fields for group ' + groupName + ' in ' + messageType + ' are ' + groupFields.join('/'));
+
     do {	
 	
-	var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
-	var val = tag.val;
-	var num = tag.num;
+		var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
+		var val = tag.val;
+		var num = tag.num;
 
-	var found = _.contains(groupFields, key);
-	var type = TAGS[num].type;
+		var found = _.contains(groupFields, key);
+		var type = TAGS[num].type ? TAGS[num].type : 'STRING';
+
+		if (idx === 0) {
+
+			console.log('first group member found for ' + groupName);
+
+		    groupAnchor = key;
+	    	member[key] = val;
+	   	 	tag = tagArray.shift();
+	    	idx++;
+		    continue;
 	
-	if (idx === 0) {
+		} else if (groupAnchor === key) {
 
-	    groupAnchor = key;
-	    member[key] = val;
-	    tag = tagArray.shift();
-	    idx++;
-	    continue;
+			console.log('new group member found for ' + groupName + ' (' + group.length + ')');
 
-	} else if (groupAnchor === key) {
+	    	group.push(member);
+	    	member = {};
+	    	member[key] = val;
+	    	tag = tagArray.shift();
+	    	idx++;
+		    continue;
 
-	    group.push(member);
-	    member = {};
-	    member[key] = val;
-	    tag = tagArray.shift();
-	    idx++;
-	    continue;
-
-	} else if (type === 'NUMINGROUP') {
+		} else if (type === 'NUMINGROUP') {
 		
-		member[key] = val;
-		member[key.substring('No'.length)] = pluckGroup(tagArray, messageType, key, val);
-		continue;
+			console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
+
+			member[key] = val;
+			
+			var newGroup = pluckGroup(tagArray, messageType, key, val);
+			member[key.substring('No'.length)] = newGroup;
+			idx++;
+			continue;
 		
+		} else if (!key in groupFields) {
 
-	} else if (!_.contains(groupFields, key))  {
+			console.log(key + ' not in ' + groupFields.join('/') + ', end of group');
+	    	tagArray.push(tag); // put this guy back
+			break;
 
-	    group.push(member);
-	    tagArray.unshift(tag); // put this guy back
-	    return group;
+		} else {
 
-	} else {
-	    member[key] = val;
-	    tag = tagArray.shift();
-	    idx++;
-	    continue;
-	}
+			console.log('normal field found: ' + key + ' -> ' + type);
 
+		    member[key] = val;
+	    	tag = tagArray.shift();
+	   	 	idx++;
+	    	continue;
+		}
 
-    } while (group.length < numInGroup || tagArray.length > 0);
+		
+		console.log(tagArray.length + " tags left");
+
+    } while (tagArray.length > 0);
+
+    console.log('returning group with ' + group.length + ' items');
+	return group;
 
 }
 
@@ -142,20 +169,23 @@ function resolveFields(fieldArray) {
     var refGroups = GROUPS[msgTypeName.name];
 
     while (fieldArray.length > 0) {
-        
-	var field = fieldArray.shift();
-	var key = field.tag;
+    	    
+		var field = fieldArray.shift();
+		var key = field.tag;
         var val = field.val;
-	var raw = field.raw;
-	var num = field.num;
+		var raw = field.raw;
+		var num = field.num;
 
-	targetObj[key] = val;
-
-        if (_.contains(Object.keys(refGroups), key)) {	    
-            var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
-	    targetObj[key.substring('No'.length)] = newGroup;
-        }
-
+    	if (_.contains(Object.keys(refGroups), key)) {	    
+			targetObj[key] = val;
+			console.log('before: ' + fieldArray.length);
+			var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
+			console.log('after: ' + fieldArray.length);
+			console.log('group coming back: ' + JSON.stringify(newGroup, undefined, 1));
+	    	targetObj[key.substring('No'.length)] = newGroup;
+    	} else {
+			targetObj[key] = val;
+		}
     }
 
     return targetObj;
@@ -191,11 +221,11 @@ function extractFields(record) {
 				val: val,
 				num: both[0],
       			raw: both[1]
-	    });
+	    	});
         }
     }
-
-    //        console.log(fieldArray);
+	
+	console.log(fieldArray);
     return fieldArray;
 
 }
@@ -204,47 +234,111 @@ function mnemonify(tag, val) {
     return TAGS[tag] ? (TAGS[tag].values ? (TAGS[tag].values[val] ? TAGS[tag].values[val] : val) : val) : val;
 }
 
+function flattenComponent(componentName, dom) {
+
+	var fieldNames = [];
+
+	var components = xpath.select('//fix/components/component', dom);
+		
+	if (!components || components.length === 0) {
+		console.error('could not find component: ' + componentName);
+		return fieldNames;
+	} else {
+
+		for (var i = 0; i < components.length; i++) {
+	
+//			console.log('\tcomponent: ' + components[i].attributes[0].value);
+
+			var fields = components[i].getElementsByTagName('field');
+			
+//			console.log("\t" + components[i].attributes[0].value + " has " + fields.length + ' fields');
+
+			for (var j = 0; j < fields.length; j++) {
+//				console.log('\t\tfield: ' + fields[j].attributes[0].value);
+				fieldNames.push(fields[j].attributes[0].value);
+			}			
+
+			var comps = components[i].getElementsByTagName('component');
+
+//			console.log('\tfound ' + comps.length + ' subcomponents under ' + componentName);
+
+
+			for (var k = 0; k < comps.length; k++) {
+
+				var compName = comps[k].attributes[0].value;
+
+//				console.log('\t\tfound subcomponent ' + compName);
+				
+				
+				
+		//		fieldNames = fieldNames.concat(flattenComponent(compName, dom));
+
+			}
+
+		}
+
+//		console.log('\n' + fieldNames);
+		return fieldNames;
+	
+	}	
+
+}
+
 function dictionaryGroups(dom) {
     
     var components = xpath.select('//fix/components/component', dom);
     var componentGroupFields = {};
 
     for (var j = 0; j < components.length; j++) {
-	var componentName = components[j].attributes[0].value;
-	componentGroupFields[componentName] = {};
-	var componentGroups = components[j].getElementsByTagName('group');
-    
-	for (var k = 0; k < componentGroups.length; k++) {
 
-	    var componentGroupName = componentGroups[k].attributes[0].value;
-	    componentGroupFields[componentName][componentGroupName] = [];
-	    var groupFields = componentGroups[k].getElementsByTagName('field');
+		// component groups
+		var componentName = components[j].attributes[0].value;
+		
+//		console.log('flattened: ' + flattenComponent(componentName, dom));
+
+//		process.exit(0);
+
+		componentGroupFields[componentName] = {};
+		var componentGroups = components[j].getElementsByTagName('group');
+    
+		for (var k = 0; k < componentGroups.length; k++) {
+		    var componentGroupName = componentGroups[k].attributes[0].value;
+	    	componentGroupFields[componentName][componentGroupName] = [];
+	    	var groupFields = componentGroups[k].getElementsByTagName('field');
 	    
-	    for (var l = 0; l < groupFields.length; l++) {
-		var fieldName = groupFields[l].attributes[0].value;
-	    
-		componentGroupFields[componentName][componentGroupName].push(fieldName);		
-	    }
-	}
+		   	for (var l = 0; l < groupFields.length; l++) {
+				var fieldName = groupFields[l].attributes[0].value;
+	    		componentGroupFields[componentName][componentGroupName].push(fieldName);		
+		    }
+
+			var groupComponents = componentGroups[k].getElementsByTagName('component');
+			for (l = 0; l < groupComponents.length; l++) {
+				var compName = groupComponents[l].attributes[0].value;
+
+//				console.log([componentName, componentGroupName, compName, componentGroupFields[componentName][componentGroupName]].join('/'));
+	//			componentGroupFields[componentName][componentGroupName] = componentGroupFields[componentName][componentGroupName].concat(flattenComponent(compName, dom)); 
+			}		
+	
+		}
+
     }
 
     var names = messageNames(dom);
     var messages = xpath.select('//fix/messages/message', dom);
 
     for (var m = 0; m < messages.length; m++) {
-	var messageName = messages[m].attributes[0].value;
-	GROUPS[messageName] = {};
-	var messageComponents = messages[m].getElementsByTagName('component');
-	for (var n = 0; n < messageComponents.length; n++) {
-	    var componentName = messageComponents[n].attributes[0].value;
-	    var groupNames = Object.keys(componentGroupFields[componentName]);
+		var messageName = messages[m].attributes[0].value;
+		GROUPS[messageName] = {};
+		var messageComponents = messages[m].getElementsByTagName('component');
+		for (var n = 0; n < messageComponents.length; n++) {
+	    	var componentName = messageComponents[n].attributes[0].value;
+	    	var groupNames = Object.keys(componentGroupFields[componentName]);
 	    
-	    for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
-		GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
-	    }
-	}
-    }
-
+		    for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
+				GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
+	   		}	
+		}
+   	}
 }
 
 function getFixVer(dom) {
@@ -266,7 +360,7 @@ function messageNames(dom) {
         messages.push({
             type: msgs[i].attributes[2].value,
             name: msgs[i].attributes[0].value
-	});
+		});
     }
 
     MESSAGES = messages;
@@ -278,6 +372,8 @@ function readDataDictionary(fileLocation) {
     var xml = fs.readFileSync(fileLocation).toString();
     var dom = new DOMParser().parseFromString(xml);
     var nodes = xpath.select("//fix/fields/field", dom);
+
+
 
     getFixVer(dom);
 
