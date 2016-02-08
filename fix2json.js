@@ -83,22 +83,21 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     var firstProp = undefined;
     var idx = 0;
     var groupFields = GROUPS[messageType][groupName];
-    var groupAnchor;
-
-    var idx = 0;
-	
-    var tag = tagArray.shift();
-    groupAnchor = tag.tag; // first one
-
+    
 //	console.log('fields for group ' + groupName + ' in ' + messageType + ' are ' + groupFields.join('/'));
 
-    do {	
-	
+    while (tagArray.length > 0) {	
+
+	    var tag = tagArray.shift();
+	    var groupAnchor = tag.tag; // first one
 		var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
 		var val = tag.val;
 		var num = tag.num;
 
 		var found = _.contains(groupFields, key);
+
+		console.log(key + ' is' + (found ? '' : ' not') + ' a member of ' + groupName);
+
 		var type = TAGS[num].type ? TAGS[num].type : 'STRING';
 
 		if (idx === 0) {
@@ -107,7 +106,6 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 		    groupAnchor = key;
 	    	member[key] = val;
-	   	 	tag = tagArray.shift();
 	    	idx++;
 		    continue;
 	
@@ -115,10 +113,8 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 			console.log('new group member found for ' + groupName + ' (' + group.length + ')');
 
-	    	group.push(member);
+	    	group.push(_.clone(member));
 	    	member = {};
-	    	member[key] = val;
-	    	tag = tagArray.shift();
 	    	idx++;
 		    continue;
 
@@ -126,8 +122,6 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 		
 			console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
 
-			member[key] = val;
-			
 			var newGroup = pluckGroup(tagArray, messageType, key, val);
 			member[key.substring('No'.length)] = newGroup;
 			idx++;
@@ -137,25 +131,21 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 			console.log(key + ' not in ' + groupFields.join('/') + ', end of group');
 	    	tagArray.push(tag); // put this guy back
-			break;
+			return group;;
 
 		} else {
 
 			console.log('normal field found: ' + key + ' -> ' + type);
 
 		    member[key] = val;
-	    	tag = tagArray.shift();
 	   	 	idx++;
 	    	continue;
 		}
 
-		
-		console.log(tagArray.length + " tags left");
-
-    } while (tagArray.length > 0);
-
-    console.log('returning group with ' + group.length + ' items');
-	return group;
+    	member[key] = val;
+		console.log(tagArray.length + ' tags left in array ');
+	
+    }
 
 }
 
