@@ -50,13 +50,13 @@ groupXPath['1.1.0'] = '//fix/messages/message/group';
 try {
 
     readDataDictionary(dictname);
-
+    
+    //    process.exit(0);
 	
 
     var input = filename ? fs.createReadStream(filename) : process.stdin;
 
 //	console.log(GROUPS);
-//	process.exit(0);
 
     rd = readline.createInterface({
         input: input,
@@ -88,47 +88,49 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 //	console.log('fields for group ' + groupName + ' in ' + messageType + ' are ' + groupFields.join('/'));
     if (tagArray && tagArray.length > 0) {
 	groupAnchor = tagArray[0].tag;
+	//console.log('groupAnchor is ' + groupAnchor);
     } else {
+	console.error('empty tag array found in pluckGroup');
 	return [];
     }
         
+    //    console.log('\n\n\n' + groupFields.join('/') + '\n\n\n');
+
     while (tagArray.length > 0) {	
 
 	var tag = tagArray.shift();
 	var key = tag.tag;
 	var val = tag.val;
 	var num = tag.num;
-
-	var found = _.contains(groupFields, key);
-		
-		//		console.log(key + ' is' + (found ? '' : ' not') + ' a member of ' + groupName);
-
+       
+	var tagInGroup = _.contains(groupFields, key);
+	//console.log(key + ' is' + (tagInGroup ? '' : ' not') + ' a member of ' + groupName);
 	var type = TAGS[num].type ? TAGS[num].type : 'STRING';
 	
-	if (idx !== 0 && groupAnchor === key) {
-	    //		    console.log('new group member found for ' + groupName + ' (' + group.length + ')');
+	if (idx > 0 && key === groupAnchor) {
 	    member[key] = val;
 	    group.push(_.clone(member));
+	    //console.log('new group member found for ' + groupName + ' (' + group.length + ')');
 	    member = {};
 	} else if (type === 'NUMINGROUP') {
-	    //		    console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
+	    //console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
 	    member[key] = val;
 	    var newGroup = pluckGroup(tagArray, messageType, key, val);
 	    member[key.substring('No'.length)] = newGroup;
-	} else if (!found) {
-	    //		    console.log(key + ' not in ' + groupFields.join('/') + ', end of group');
+	} else if (!tagInGroup) {
+	    //console.log(key + ' not in group fields for ' + messageType + ', returning');
 	    group.push(_.clone(member));
 	    tagArray.push(tag); // put this guy back
-	    return group;;
+	    //console.log('tagArray going back with ' + tagArray.length + ' items');
+	    return group;
 	} else {
 	    member[key] = val;
 	}
 
 	idx++;
+	//	console.log(tagArray.length + ' tags left in array ');
 
-	//console.log(tagArray.length + ' tags left in array ');
     }
-    
 }
 
 
@@ -144,22 +146,20 @@ function resolveFields(fieldArray) {
 
     while (fieldArray.length > 0) {
     	    
-		var field = fieldArray.shift();
-		var key = field.tag;
-        var val = field.val;
-		var raw = field.raw;
-		var num = field.num;
-
+	var field = fieldArray.shift();
+	var key = field.tag;
+	var val = field.val;
+	var raw = field.raw;
+	var num = field.num;
+		
     	if (_.contains(Object.keys(refGroups), key)) {	    
-			targetObj[key] = val;
-			//console.log('before: ' + fieldArray.length);
-			var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
-			//console.log('after: ' + fieldArray.length);
-			//console.log('group coming back: ' + JSON.stringify(newGroup, undefined, 1));
-	    	targetObj[key.substring('No'.length)] = newGroup;
+	    var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
+	    //console.log('group coming back: ' + JSON.stringify(newGroup, undefined, 1));
+	    targetObj[key] = val;
+	    targetObj[key.substring('No'.length)] = newGroup;
     	} else {
-			targetObj[key] = val;
-		}
+	    targetObj[key] = val;
+	}
     }
 
     return targetObj;
@@ -191,15 +191,15 @@ function extractFields(record) {
             }
             val = mnemonify(both[0], val);
             fieldArray.push({
-                tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
-				val: val,
-				num: both[0],
-      			raw: both[1]
-	    	});
+		    tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
+		    val: val,
+		    num: both[0],
+      		    raw: both[1]
+	    });
         }
     }
 	
-    //	console.log(fieldArray);
+    //    console.log(fieldArray);
     return fieldArray;
 
 }
@@ -265,54 +265,49 @@ function dictionaryGroups(dom) {
 
     for (var j = 0; j < components.length; j++) {
 
-		// component groups
-		var componentName = components[j].attributes[0].value;
-		
-//		console.log('flattened: ' + flattenComponent(componentName, dom));
-
-//		process.exit(0);
-
-		componentGroupFields[componentName] = {};
-		var componentGroups = components[j].getElementsByTagName('group');
-    
-		for (var k = 0; k < componentGroups.length; k++) {
-		    var componentGroupName = componentGroups[k].attributes[0].value;
-	    	componentGroupFields[componentName][componentGroupName] = [];
-	    	var groupFields = componentGroups[k].getElementsByTagName('field');
-	    
-		   	for (var l = 0; l < groupFields.length; l++) {
-				var fieldName = groupFields[l].attributes[0].value;
-	    		componentGroupFields[componentName][componentGroupName].push(fieldName);		
-		    }
-
-			var groupComponents = componentGroups[k].getElementsByTagName('component');
-			for (l = 0; l < groupComponents.length; l++) {
-				var compName = groupComponents[l].attributes[0].value;
-
-//				console.log([componentName, componentGroupName, compName, componentGroupFields[componentName][componentGroupName]].join('/'));
-	//			componentGroupFields[componentName][componentGroupName] = componentGroupFields[componentName][componentGroupName].concat(flattenComponent(compName, dom)); 
-			}		
+	// component groups
+	var componentName = components[j].attributes[0].value;
 	
-		}
+	componentGroupFields[componentName] = {};
+	var componentGroups = components[j].getElementsByTagName('group');
+	
+	for (var k = 0; k < componentGroups.length; k++) {
+	    var componentGroupName = componentGroups[k].attributes[0].value;
+	    componentGroupFields[componentName][componentGroupName] = [];
+	    var groupFields = componentGroups[k].getElementsByTagName('field');
+	    
+	    for (var l = 0; l < groupFields.length; l++) {
+		var fieldName = groupFields[l].attributes[0].value;
+		componentGroupFields[componentName][componentGroupName].push(fieldName);		
+	    }
 
+	    var groupComponents = componentGroups[k].getElementsByTagName('component');
+	    for (l = 0; l < groupComponents.length; l++) {
+		var compName = groupComponents[l].attributes[0].value;
+		
+		//		console.log('\n' + [componentName, componentGroupName, compName, '[' + componentGroupFields[componentName][componentGroupName]].join('/') + ']\n');
+		//componentGroupFields[componentName][componentGroupName] = _.uniq(componentGroupFields[componentName][componentGroupName].concat(flattenComponent(compName, dom))); 
+	    }		
+	    
+	}
     }
 
     var names = messageNames(dom);
     var messages = xpath.select('//fix/messages/message', dom);
 
     for (var m = 0; m < messages.length; m++) {
-		var messageName = messages[m].attributes[0].value;
-		GROUPS[messageName] = {};
-		var messageComponents = messages[m].getElementsByTagName('component');
-		for (var n = 0; n < messageComponents.length; n++) {
-	    	var componentName = messageComponents[n].attributes[0].value;
-	    	var groupNames = Object.keys(componentGroupFields[componentName]);
+	var messageName = messages[m].attributes[0].value;
+	GROUPS[messageName] = {};
+	var messageComponents = messages[m].getElementsByTagName('component');
+	for (var n = 0; n < messageComponents.length; n++) {
+	    var componentName = messageComponents[n].attributes[0].value;
+	    var groupNames = Object.keys(componentGroupFields[componentName]);
 	    
-		    for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
-				GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
-	   		}	
-		}
-   	}
+	    for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
+		GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
+	    }	
+	}
+    }
 }
 
 function getFixVer(dom) {
