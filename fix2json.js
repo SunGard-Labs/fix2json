@@ -78,6 +78,7 @@ try {
 
 function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     
+    var groupAnchor;
     var group = [];
     var member = {};
     var firstProp = undefined;
@@ -85,69 +86,52 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     var groupFields = GROUPS[messageType][groupName];
     
 //	console.log('fields for group ' + groupName + ' in ' + messageType + ' are ' + groupFields.join('/'));
-
+    if (tagArray && tagArray.length > 0) {
+	groupAnchor = tagArray[0].tag;
+    } else {
+	return [];
+    }
+        
     while (tagArray.length > 0) {	
 
-	    var tag = tagArray.shift();
-	    var groupAnchor = tag.tag; // first one
-		var key = (groupAnchor && idx > 0) ? tag.tag : groupAnchor;
-		var val = tag.val;
-		var num = tag.num;
+	var tag = tagArray.shift();
+	var key = tag.tag;
+	var val = tag.val;
+	var num = tag.num;
 
-		var found = _.contains(groupFields, key);
-
-		console.log(key + ' is' + (found ? '' : ' not') + ' a member of ' + groupName);
-
-		var type = TAGS[num].type ? TAGS[num].type : 'STRING';
-
-		if (idx === 0) {
-
-			console.log('first group member found for ' + groupName);
-
-		    groupAnchor = key;
-	    	member[key] = val;
-	    	idx++;
-		    continue;
-	
-		} else if (groupAnchor === key) {
-
-			console.log('new group member found for ' + groupName + ' (' + group.length + ')');
-
-	    	group.push(_.clone(member));
-	    	member = {};
-	    	idx++;
-		    continue;
-
-		} else if (type === 'NUMINGROUP') {
+	var found = _.contains(groupFields, key);
 		
-			console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
+		//		console.log(key + ' is' + (found ? '' : ' not') + ' a member of ' + groupName);
 
-			var newGroup = pluckGroup(tagArray, messageType, key, val);
-			member[key.substring('No'.length)] = newGroup;
-			idx++;
-			continue;
-		
-		} else if (!key in groupFields) {
-
-			console.log(key + ' not in ' + groupFields.join('/') + ', end of group');
-	    	tagArray.push(tag); // put this guy back
-			return group;;
-
-		} else {
-
-			console.log('normal field found: ' + key + ' -> ' + type);
-
-		    member[key] = val;
-	   	 	idx++;
-	    	continue;
-		}
-
-    	member[key] = val;
-		console.log(tagArray.length + ' tags left in array ');
+	var type = TAGS[num].type ? TAGS[num].type : 'STRING';
 	
+	if (idx !== 0 && groupAnchor === key) {
+	    //		    console.log('new group member found for ' + groupName + ' (' + group.length + ')');
+	    member[key] = val;
+	    group.push(_.clone(member));
+	    member = {};
+	} else if (type === 'NUMINGROUP') {
+	    //		    console.log('start of new group found for ' + groupName + ' (' + group.length + ')');
+	    member[key] = val;
+	    var newGroup = pluckGroup(tagArray, messageType, key, val);
+	    member[key.substring('No'.length)] = newGroup;
+	} else if (!found) {
+	    //		    console.log(key + ' not in ' + groupFields.join('/') + ', end of group');
+	    group.push(_.clone(member));
+	    tagArray.push(tag); // put this guy back
+	    return group;;
+	} else {
+	    member[key] = val;
+	}
+
+	idx++;
+
+	//console.log(tagArray.length + ' tags left in array ');
     }
-
+    
 }
+
+
 
 function resolveFields(fieldArray) {
 
@@ -168,10 +152,10 @@ function resolveFields(fieldArray) {
 
     	if (_.contains(Object.keys(refGroups), key)) {	    
 			targetObj[key] = val;
-			console.log('before: ' + fieldArray.length);
+			//console.log('before: ' + fieldArray.length);
 			var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);	    
-			console.log('after: ' + fieldArray.length);
-			console.log('group coming back: ' + JSON.stringify(newGroup, undefined, 1));
+			//console.log('after: ' + fieldArray.length);
+			//console.log('group coming back: ' + JSON.stringify(newGroup, undefined, 1));
 	    	targetObj[key.substring('No'.length)] = newGroup;
     	} else {
 			targetObj[key] = val;
@@ -215,7 +199,7 @@ function extractFields(record) {
         }
     }
 	
-	console.log(fieldArray);
+    //	console.log(fieldArray);
     return fieldArray;
 
 }
