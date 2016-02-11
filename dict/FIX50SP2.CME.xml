@@ -10022,13 +10022,22 @@
    <value enum='2' description='REJECTED' />
    <value enum='3' description='TERMINATE_UNASSIGN' />
   </field>
+  <field number='5770' name='PriceRatio' type='FLOAT' />
+  <field number='5790' name='FixingBracket' type='CHAR'/>
+  <field number='5791' name='ClearedVolume' type='QTY'/>
+  <field number='5792' name='OpenInterestQty' type='QTY'/>
+  <field number='5795' name='LegSecurityGroup' type='LOCALMKTDATE'/>
   <field number='5796' name='TradingReferenceDate' type='LOCALMKTDATE'/>
   <field number='5797' name='AggressorSide' type='INT' />
-  <field number='5799' name='MatchEventIndicator' type='STRING' />
-  <field number='9787' name='DisplayFactor' type='FLOAT' />
-  <field number='9850' name='MinCabPrice' type='PRICE' />
+  <field number='5799' name='MatchEventIndicator' type='CHAR'/>
+  <field number='5819' name='DecayStartDate' type='LOCALMKTDATE'/>
+  <field number='5849' name='OriginalContactSize' type='QTY'/>
   <field number='6937' name='Asset' type='STRING' />
+  <field number='9787' name='DisplayFactor' type='FLOAT' />
   <field number='9779' name='UserDefinedInstrument' type='STRING' />
   <field number='9800' name='PriceDisplayFormat' type='INT' />
+  <field number='9850' name='MinCabPrice' type='PRICE' />
+  <field number='37702' name='MainFraction'  type='INT' />
+  <field number='37703' name='SubFraction'  type='INT' />
  </fields>
 </fix>

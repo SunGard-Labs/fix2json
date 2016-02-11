@@ -1,5 +1,4 @@
 #! /usr/bin/env node
-
 var fs = require('fs');
 var util = require('util');
 var xpath = require('xpath');
@@ -48,6 +47,8 @@ try {
 
     readDataDictionary(dictname);
 
+//	console.log(GROUPS);
+
     var input = filename ? fs.createReadStream(filename) : process.stdin;
 
     rd = readline.createInterface({
@@ -78,39 +79,51 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     var groupFields = GROUPS[messageType][groupName];
     
     if (tagArray && tagArray.length > 0) {
-	groupAnchor = tagArray[0].tag;
+		groupAnchor = tagArray[0].tag;
     } else {
-	console.error('empty tag array found in pluckGroup');
-	return [];
+		console.error('empty tag array found in pluckGroup');
+		return [];
     }
         
     while (tagArray.length > 0) {	
-
-	var tag = tagArray.shift();
-	var key = tag.tag;
-	var val = tag.val;
-	var num = tag.num;
-       
-	var tagInGroup = _.contains(groupFields, key);
-	var type = TAGS[num].type ? TAGS[num].type : 'STRING';
 	
-	if (idx > 0 && key === groupAnchor) {
-	    member[key] = val;
-	    group.push(_.clone(member));
-	    member = {};
-	} else if (type === 'NUMINGROUP') {
-	    member[key] = val;
-	    var newGroup = pluckGroup(tagArray, messageType, key, val);
-	    member[key.substring('No'.length)] = newGroup;
-	} else if (!tagInGroup) {
-	    group.push(_.clone(member));
-	    tagArray.push(tag); // put this guy back
-	    return group;
-	} else {
-	    member[key] = val;
-	}
+		var tag = tagArray.shift();
+		var key = tag.tag;
+		var val = tag.val;
+		var num = tag.num;
+       
+		var tagInGroup = _.contains(groupFields, key);
+		
 
-	idx++;
+		if (!TAGS[num]) {
+	
+//			console.log('no tag reference found for ' + JSON.stringify(tag, undefined, 1));	
+	
+		}
+
+		var type = TAGS[num].type ? TAGS[num].type : 'STRING';
+
+//		console.log(messageType + ' ' + groupName + ' ' + key + ' (' + tagInGroup + '): ' + groupFields);
+	
+		if (idx > 0 && key === groupAnchor) {
+		    member[key] = val;
+	    	group.push(_.clone(member));
+	    	member = {};
+		} else if (type === 'NUMINGROUP') {
+	   		member[key] = val;
+			if (val > 0) {
+		    	var newGroup = pluckGroup(tagArray, messageType, key, val);
+		    	member[key.substring('No'.length)] = newGroup;
+			}
+		} else if (!tagInGroup) {
+	    	group.push(_.clone(member));
+	    	tagArray.push(tag); // put this guy back
+	    	return group;
+		} else {
+	    	member[key] = val;
+		}
+
+		idx++;
 
     }
 }
@@ -118,6 +131,8 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 
 function resolveFields(fieldArray) {
+
+//	console.log('\n' + JSON.stringify(fieldArray, undefined, 1) + '\n');
 
     targetObj = {};
     var group = [];
@@ -208,7 +223,7 @@ function flattenComponent(componentName, dom) {
 		}
 
 	    }
-	    return fieldNames;
+	    return _.uniq(fieldNames);
 	}	
 }
 
@@ -221,7 +236,7 @@ function dictionaryGroups(dom) {
 
 	// component groups
 	var componentName = components[j].attributes[0].value;
-	
+
 	componentGroupFields[componentName] = {};
 	var componentGroups = components[j].getElementsByTagName('group');
 	
@@ -239,8 +254,8 @@ function dictionaryGroups(dom) {
 	    for (l = 0; l < groupComponents.length; l++) {
 		var compName = groupComponents[l].attributes[0].value;
 		
-		//		console.log('\n' + [componentName, componentGroupName, compName, '[' + componentGroupFields[componentName][componentGroupName]].join('/') + ']\n');
-		//componentGroupFields[componentName][componentGroupName] = _.uniq(componentGroupFields[componentName][componentGroupName].concat(flattenComponent(compName, dom))); 
+//		console.log('\n' + [componentName, componentGroupName, compName, '[' + componentGroupFields[componentName][componentGroupName]].join('/') + ']\n');
+		componentGroupFields[componentName][componentGroupName] = componentGroupFields[componentName][componentGroupName].concat(flattenComponent(compName, dom)); 
 	    }		
 	    
 	}
