@@ -103,7 +103,7 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
 
 		var type = TAGS[num].type ? TAGS[num].type : 'STRING';
 
-//		console.log(messageType + ' ' + groupName + ' ' + key + ' (' + tagInGroup + '): ' + groupFields);
+		// 	onsole.log(messageType + ' ' + groupName + ' ' + key + ' (' + tagInGroup + '): ' + groupFields);
 	
 		if (idx > 0 && key === groupAnchor) {
 		    member[key] = val;
