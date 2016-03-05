@@ -13,9 +13,9 @@ Some scenarios where fix2json might be of use are:
 
 * As a pre-processor for inserting FIX records into JSON-conformant NoSQL repositories, such as Google BigQuery or MongoDB. 
 
-The current level of fix2json semantic naivete is very high.  As such, users should consider ensuring the semantic validity of all FIX messages upstream.
+fix2json does not attempt any affirmative context validation, although syntax validation is performed as required for parsing of repeating groups.   As such, users should consider ensuring the contextual validity of all FIX messages upstream.  For satisfactory results, fix2json should be paired with the appropriate target FIX version data dictionary.
 
-There is a high likelihood that the data dictionaries employed will need to be adjusted to conform to the FIX specification of the particular message generator.  In particular, the processing of repeating groups relys upon the specified dictionary to determine the end of any particular group.  If the FIX message data uses custom fields that are not present in the supplied data dictionary, the dictionary really should be patched accordingly.  See the files ```dict/FIX50SP2.CME.xml``` and ```dict/FIX42-bloomberg-step.xml``` for examples of vendor-specific tags retroactively patched to a stock FIX data dictionary. 
+There is a high likelihood that the data dictionaries in ```dict``` will need to be adjusted to conform to the FIX specification of the particular message generator.  In particular, the processing of repeating groups relys upon the specified dictionary to determine the end of any particular group.  If the FIX message data uses custom fields that are not present in the supplied data dictionary, the dictionary really should be patched accordingly.  See the files ```dict/FIX50SP2.CME.xml``` and ```dict/FIX42-bloomberg-step.xml``` for examples of vendor-specific tags retroactively patched to a stock QuickFIX XML data dictionary. 
 
 ## Install
 
@@ -27,72 +27,123 @@ npm install -g fix2json
 $ fix2json
 Usage: fix2json [-p] <data dictionary xml file> [<path to FIX message file>]
 
-$ cat secdef.dat | head -10 | tail -1 | fix2json -p dict/FIX50SP2.xml 
+$ head -3 MDFF_CME_20130714-20130715_7819_0 | fix2json -p dict/FIX50SP2.CME.xml
 {
-    "5796": "20151001",
-    "5799": "00000000",
-    "6937": "BR:DDM",
-    "9779": "N",
-    "9787": "1.0000000",
-    "9800": "2",
-    "MsgType": "SECURITYDEFINITION",
-    "SecurityUpdateAction": "MODIFY",
-    "LastUpdateTime": "20151001173404000000",
-    "ApplID": "510",
-    "MarketSegmentID": "12",
-    "UnderlyingProduct": "14",
-    "SecurityExchange": "XBMF",
-    "SecurityGroup": "BR:P3",
-    "Symbol": "BR:DDMQ20",
-    "SecurityID": "20030266",
-    "SecurityIDSource": "EXCHANGE SYMBOL",
-    "SecurityType": "FUTURE",
-    "CFICode": "FFFCSX",
-    "MaturityMonthYear": "202008",
-    "Currency": "BRL",
-    "SettlCurrency": "BRL",
-    "MatchAlgorithm": "F",
-    "MinTradeVol": "5",
-    "MaxTradeVol": "1000",
-    "MinPriceIncrement": "0.0100000",
-    "SettlPriceType": "10000000",
-    "NoEvents": "2",
-    "Events": [
-        {
-            "EventType": "ACTIVATION",
-            "EventTime": "20150529000000000000"
-        },
-        {
-            "EventType": "LAST ELIGIBLE TRADE DATE",
-            "EventTime": "20200731211000000000",
-            "NoMDFeedTypes": "1",
-            "MDFeedTypes": [
-                {
-                    "MDFeedType": "GBX",
-                    "MarketDepth": "10",
-                    "NoInstrAttrib": "1",
-                    "InstrAttrib": [
-                        {
-                            "InstrAttribType": "TRADE TYPE ELIGIBILITY DETAILS FOR SECURITY",
-                            "InstrAttribValue": "00000000000000000000000000000001",
-                            "NoLotTypeRules": "1",
-                            "LotTypeRules": [
-                                {
-                                    "LotType": "ROUND LOT BASED UPON UNITOFMEASURE",
-                                    "MinLotSize": "5.0000"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-    ],
-    "LowLimitPrice": "5.2800000",
-    "TradingReferencePrice": "7.2700000",
-    "HighLimitPrice": "9.2800000"
+  "ApplVerID": "FIX50SP2",
+  "BodyLength": 274,
+  "MsgType": "MARKETDATAINCREMENTALREFRESH",
+  "SenderCompID": "CME",
+  "MsgSeqNum": 2918,
+  "SendingTime": "20130714212647805",
+  "TradeDate": "20130715",
+  "NoMDEntries": 3,
+  "MDEntries": [
+    {
+      "MDUpdateAction": "NEW",
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "2975",
+      "RptSeq": 6,
+      "SecurityDesc": "6EU4",
+      "MDEntryType": "SIMULATED SELL PRICE",
+      "MDEntryPx": 13157,
+      "MDEntryTime": "212647000"
+    },
+    {
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "2975",
+      "RptSeq": 7,
+      "SecurityDesc": "6EU4",
+      "MDEntryType": "SIMULATED BUY PRICE",
+      "MDEntryPx": 13069,
+      "MDEntryTime": "212647000",
+      "MDUpdateAction": "NEW"
+    },
+    {
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "2975",
+      "RptSeq": 8,
+      "SecurityDesc": "6EU4",
+      "MDEntryType": "OFFER",
+      "MDEntryPx": 13157,
+      "MDEntrySize": 10,
+      "MDEntryTime": "212647000",
+      "TradingSessionID": "0",
+      "NumberOfOrders": 1,
+      "MDPriceLevel": 1
+    }
+  ],
+  "CheckSum": "092"
 }
-
+{
+  "ApplVerID": "FIX50SP2",
+  "BodyLength": 277,
+  "MsgType": "MARKETDATAINCREMENTALREFRESH",
+  "SenderCompID": "CME",
+  "MsgSeqNum": 2916,
+  "SendingTime": "20130714212639044",
+  "TradeDate": "20130715",
+  "NoMDEntries": 3,
+  "MDEntries": [
+    {
+      "MDUpdateAction": "NEW",
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "22195",
+      "RptSeq": 6,
+      "SecurityDesc": "6EZ4",
+      "MDEntryType": "SIMULATED SELL PRICE",
+      "MDEntryPx": 13171,
+      "MDEntryTime": "212639000"
+    },
+    {
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "22195",
+      "RptSeq": 7,
+      "SecurityDesc": "6EZ4",
+      "MDEntryType": "SIMULATED BUY PRICE",
+      "MDEntryPx": 13083,
+      "MDEntryTime": "212639000",
+      "MDUpdateAction": "NEW"
+    },
+    {
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "22195",
+      "RptSeq": 8,
+      "SecurityDesc": "6EZ4",
+      "MDEntryType": "OFFER",
+      "MDEntryPx": 13171,
+      "MDEntrySize": 10,
+      "MDEntryTime": "212639000",
+      "TradingSessionID": "0",
+      "NumberOfOrders": 1,
+      "MDPriceLevel": 1
+    }
+  ],
+  "CheckSum": "227"
+}
+{
+  "ApplVerID": "FIX50SP2",
+  "BodyLength": 134,
+  "MsgType": "MARKETDATAINCREMENTALREFRESH",
+  "SenderCompID": "CME",
+  "MsgSeqNum": 1371,
+  "SendingTime": "20130714180142945",
+  "TradeDate": "20130715",
+  "NoMDEntries": 1,
+  "MDEntries": [
+    {
+      "MDUpdateAction": "NEW",
+      "SecurityIDSource": "EXCHANGE SYMBOL",
+      "SecurityID": "9296",
+      "SettlDate": "20130712",
+      "RptSeq": 1,
+      "SecurityDesc": "6EH4",
+      "MDEntryType": "SETTLEMENT PRICE",
+      "MDEntryPx": 13077,
+      "MDEntryTime": "180142000"
+    }
+  ],
+  "CheckSum": "107"
+}
 
 $ fix2json dict/FIX42.xml fixmsg_11212014.txt | mongoimport --drop --collection FIX
 connected to: 127.0.0.1
@@ -112,7 +163,7 @@ connected to: 127.0.0.1
 2015-08-20T15:19:55.981-0400 imported 212993 objects
 
 
-$ head -1 testfiles/100FIX42.dat | ./fix2json.js -p dict/FIX42.xml 
+$ head -1 testfiles/100FIX42.dat | fix2json -p dict/FIX42.xml 
 {
     "8201": "1",
     "Account": "909646300",
@@ -139,264 +190,110 @@ $ head -1 testfiles/100FIX42.dat | ./fix2json.js -p dict/FIX42.xml
     "SecurityExchange": "P"
 }
 
-
-$ head -3 /tmp/MDFF_CBT_20130714-20130715_7813_0 | fix2yaml dict/FIX50SP2.CME.xml
+$ head -3 MDFF_CME_20130714-20130715_7819_0 | fix2yaml -p dict/FIX50SP2.CME.xml
 ApplVerID: FIX50SP2
-BodyLength: '156'
+BodyLength: 274
 MsgType: MARKETDATAINCREMENTALREFRESH
 SenderCompID: CME
-MsgSeqNum: '431875'
-SendingTime: '20130715053428544'
+MsgSeqNum: 2918
+SendingTime: '20130714212647805'
 TradeDate: '20130715'
-NoMDEntries: '1'
+NoMDEntries: 3
 MDEntries:
     -
-        MDUpdateAction: CHANGE
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '19590'
-        RptSeq: '1491'
-        SecurityDesc: ZCN4-ZCU4
-        MDEntryType: BID
-        MDEntryPx: '0.75'
-        MDEntrySize: '7'
-        MDEntryTime: '53428000'
-        TradingSessionID: HALFDAY
-        NumberOfOrders: '3'
-        MDPriceLevel: '3'
-CheckSum: '233'
+        SecurityID: '2975'
+        RptSeq: 6
+        SecurityDesc: 6EU4
+        MDEntryType: 'SIMULATED SELL PRICE'
+        MDEntryPx: 13157
+        MDEntryTime: '212647000'
+    -
+        SecurityIDSource: 'EXCHANGE SYMBOL'
+        SecurityID: '2975'
+        RptSeq: 7
+        SecurityDesc: 6EU4
+        MDEntryType: 'SIMULATED BUY PRICE'
+        MDEntryPx: 13069
+        MDEntryTime: '212647000'
+        MDUpdateAction: NEW
+    -
+        SecurityIDSource: 'EXCHANGE SYMBOL'
+        SecurityID: '2975'
+        RptSeq: 8
+        SecurityDesc: 6EU4
+        MDEntryType: OFFER
+        MDEntryPx: 13157
+        MDEntrySize: 10
+        MDEntryTime: '212647000'
+        TradingSessionID: '0'
+        NumberOfOrders: 1
+        MDPriceLevel: 1
+CheckSum: '092'
 
 ApplVerID: FIX50SP2
-BodyLength: '104'
-MsgType: SECURITYSTATUS
-SenderCompID: CME
-MsgSeqNum: '6613'
-SendingTime: '20130714180206034'
-SecurityIDSource: 'EXCHANGE SYMBOL'
-SecurityID: '164576'
-TradeDate: '20130715'
-SecurityDesc: 'ZC:BF H4-K4-N4'
-HighPx: '159'
-LowPx: '-161'
-CheckSum: '138'
-
-ApplVerID: FIX50SP2
-BodyLength: '1634'
+BodyLength: 277
 MsgType: MARKETDATAINCREMENTALREFRESH
 SenderCompID: CME
-MsgSeqNum: '3177179'
-SendingTime: '20130715181451830'
+MsgSeqNum: 2916
+SendingTime: '20130714212639044'
 TradeDate: '20130715'
-NoMDEntries: '16'
+NoMDEntries: 3
 MDEntries:
     -
-        MDUpdateAction: CHANGE
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '1647'
-        RptSeq: '180151'
-        SecurityDesc: 'ZC:BF U3-Z3-H4'
-        MDEntryType: OFFER
-        MDEntryPx: '45'
-        MDEntrySize: '195'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
+        SecurityID: '22195'
+        RptSeq: 6
+        SecurityDesc: 6EZ4
+        MDEntryType: 'SIMULATED SELL PRICE'
+        MDEntryPx: 13171
+        MDEntryTime: '212639000'
     -
-        MDUpdateAction: CHANGE
         SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '21907'
-        RptSeq: '118087'
-        SecurityDesc: ZCU3-ZCH4
-        MDEntryType: OFFER
-        MDEntryPx: '21'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
+        SecurityID: '22195'
+        RptSeq: 7
+        SecurityDesc: 6EZ4
+        MDEntryType: 'SIMULATED BUY PRICE'
+        MDEntryPx: 13083
+        MDEntryTime: '212639000'
+        MDUpdateAction: NEW
     -
-        MDUpdateAction: CHANGE
         SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '21907'
-        RptSeq: '118088'
-        SecurityDesc: ZCU3-ZCH4
+        SecurityID: '22195'
+        RptSeq: 8
+        SecurityDesc: 6EZ4
         MDEntryType: OFFER
-        MDEntryPx: '21.25'
-        MDEntrySize: '10'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '504398'
-        RptSeq: '29594'
-        SecurityDesc: ZCU3-ZCH5
-        MDEntryType: OFFER
-        MDEntryPx: '11.25'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '504398'
-        RptSeq: '29595'
-        SecurityDesc: ZCU3-ZCH5
-        MDEntryType: OFFER
-        MDEntryPx: '11.5'
-        MDEntrySize: '2'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '21970'
-        RptSeq: '50008'
-        SecurityDesc: ZCU3-ZCK4
-        MDEntryType: OFFER
-        MDEntryPx: '13.5'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '21970'
-        RptSeq: '50009'
-        SecurityDesc: ZCU3-ZCK4
-        MDEntryType: OFFER
-        MDEntryPx: '13.75'
-        MDEntrySize: '8'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '558644'
-        RptSeq: '48554'
-        SecurityDesc: ZCU3-ZCN4
-        MDEntryType: OFFER
-        MDEntryPx: '7'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '558644'
-        RptSeq: '48555'
-        SecurityDesc: ZCU3-ZCN4
-        MDEntryType: OFFER
-        MDEntryPx: '7.25'
-        MDEntrySize: '8'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '22098'
-        RptSeq: '52504'
-        SecurityDesc: ZCU3-ZCU4
-        MDEntryType: OFFER
-        MDEntryPx: '15.25'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '22098'
-        RptSeq: '52505'
-        SecurityDesc: ZCU3-ZCU4
-        MDEntryType: OFFER
-        MDEntryPx: '15.5'
-        MDEntrySize: '1'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
+        MDEntryPx: 13171
+        MDEntrySize: 10
+        MDEntryTime: '212639000'
+        TradingSessionID: '0'
+        NumberOfOrders: 1
+        MDPriceLevel: 1
+CheckSum: '227'
+
+ApplVerID: FIX50SP2
+BodyLength: 134
+MsgType: MARKETDATAINCREMENTALREFRESH
+SenderCompID: CME
+MsgSeqNum: 1371
+SendingTime: '20130714180142945'
+TradeDate: '20130715'
+NoMDEntries: 1
+MDEntries:
     -
         MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '504409'
-        RptSeq: '16282'
-        SecurityDesc: ZCU3-ZCU5
-        MDEntryType: OFFER
-        MDEntryPx: '25.25'
-        MDEntrySize: '1'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '588275'
-        RptSeq: '265779'
-        SecurityDesc: ZCU3-ZCZ3
-        MDEntryType: OFFER
-        MDEntryPx: '33'
-        MDEntrySize: '3'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '1'
-    -
-        MDUpdateAction: CHANGE
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '588275'
-        RptSeq: '265780'
-        SecurityDesc: ZCU3-ZCZ3
-        MDEntryType: OFFER
-        MDEntryPx: '33.25'
-        MDEntrySize: '20'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: NEW
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '519645'
-        RptSeq: '32899'
-        SecurityDesc: ZCU3-ZCZ4
-        MDEntryType: OFFER
-        MDEntryPx: '9.75'
-        MDEntrySize: '1'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-    -
-        MDUpdateAction: NEW
-        SecurityIDSource: 'EXCHANGE SYMBOL'
-        SecurityID: '19282'
-        RptSeq: '20689'
-        SecurityDesc: ZCU3-ZCZ5
-        MDEntryType: OFFER
-        MDEntryPx: '29.75'
-        MDEntrySize: '1'
-        MDEntryTime: '181451000'
-        QuoteCondition: 'IMPLIED PRICE'
-        TradingSessionID: HALFDAY
-        MDPriceLevel: '2'
-CheckSum: '007'
+        SecurityID: '9296'
+        SettlDate: '20130712'
+        RptSeq: 1
+        SecurityDesc: 6EH4
+        MDEntryType: 'SETTLEMENT PRICE'
+        MDEntryPx: 13077
+        MDEntryTime: '180142000'
+CheckSum: '107'
+
 
 
 ```
@@ -407,7 +304,7 @@ CheckSum: '007'
 
 * fix2json makes few semantic judgements about the FIX data being processed and blindly applies the specified data dictionary to the input FIX file.  Feedback from the community on an appropriate level of validation is welcomed.
 
-* fix2json now uses streams instead of loading up the entire source file in one go.  This means that you can process a 2G+ file starting immediately.  What this also means is that fix2json no longer returns a proper JSON array as it's output.  Individual JSON objects will be output that correspond to the individual messages in the source file.  For this reason, pretty printing is disabled by default.  Use ```-p``` as the first argument to pretty print the output JSON.
+* fix2json uses streams instead of loading up the entire source file in one go.  This means that you can process 2G+ files and receive output almost immediately.  What this also means is that fix2json does not emit a canonical JSON array as it's output.  Individual JSON objects will be output that correspond to the individual messages in the source file.  For this reason, pretty printing is disabled by default.  Use ```-p``` as the first argument for pretty printed output JSON.
 
 * fix2json will replace underscores ('_') with spaces (' ') for all mnemonic tag descriptions found in the input data dictionary.  Hence, a description for EventType will be in the data dictionary as "LAST_ELIGIBLE_TRADE_DATE", but will be interpreted by fix2json as "LAST ELIGIBLE TRADE DATE"
 
@@ -423,6 +320,5 @@ CheckSum: '007'
 MIT. See license text in [LICENSE](LICENSE).
 
 ## Copyrights and Names
-Copyright © SunGard 2015. Licensed under the MIT license.
-
+Copyright © FIS 2015-2016. Licensed under the MIT license.
 
