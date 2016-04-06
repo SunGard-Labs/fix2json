@@ -833,6 +833,7 @@
    <field name='TradeDate' required='N' />
    <field name='MDReqID' required='N' />
    <component name='MDIncGrp' required='Y' />
+   <component name='OrderIDGrp' required='N' />
    <field name='ApplQueueDepth' required='N' />
    <field name='ApplQueueResolution' required='N' />
    <component name='RoutingGrp' required='N' />
@@ -4501,6 +4502,12 @@
     <field name='Nested4PartySubID' required='N' />
     <field name='Nested4PartySubIDType' required='N' />
    </group>
+  </component>
+  <component name='OrderIDGrp'>
+    <group name='NoOrderIDEntries' required='N'>
+      <field name='OrderID' required='Y'/>
+      <field name='LastQty' required='Y'/>
+    </group>
   </component>
   <component name='MDIncGrp'>
    <group name='NoMDEntries' required='Y'>
@@ -10039,5 +10046,6 @@
   <field number='9850' name='MinCabPrice' type='PRICE' />
   <field number='37702' name='MainFraction'  type='INT' />
   <field number='37703' name='SubFraction'  type='INT' />
+  <field number='37705' name='NoOrderIDEntries'  type='NUMINGROUP' />
  </fields>
 </fix>
