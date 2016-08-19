@@ -28,7 +28,8 @@
     "xpath": "~0.0.9",
     "node-xml": "~1.0.2",
     "string_decoder": "~0.10.31",
-	"yamljs": "~0.2.4" 
+	"yamljs": "~0.2.4",
+	"zlib": "~1.0.5" 
  },
   "keywords": [
     "FIX",
