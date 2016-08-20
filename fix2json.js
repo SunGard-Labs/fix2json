@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 var fs = require('fs');
-var fs = require('zlib');
+var zlib = require('zlib');
 var util = require('util');
 var xpath = require('xpath');
 var _ = require('underscore');
@@ -47,34 +47,20 @@ try {
 
     readDataDictionary(dictname);
 
-	
-	
-    var input, contents = undefined;   // = filename ? fs.createReadStream(filename) : process.stdin;
-
+	var input;
 	if (filename) {
-
-		input = fs.createReadStream(filename);
-
 		if (filename.substring(filename.length - 3).toLowerCase() === '.gz') {
-
-			var guz = zlib.createGunzip();
-			input.pipe(guz).pipe(contents);
-
+			input = fs.createReadStream(filename)
+					.pipe(zlib.createGunzip());
 		} else {
-
-			contents = fs.createReadStream(filename);
-
+			input = fs.createReadStream(filename);
 		}
 	} else {	
-
-		contents = process.stdin;
-
+		input = process.stdin;
 	}
-	
-	
-	
-    rd = readline.createInterface({
-        input: contents,
+
+	rd = readline.createInterface({
+        input: input,
         output: process.stdout,
         terminal: false
     });
