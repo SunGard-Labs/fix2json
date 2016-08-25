@@ -189,6 +189,7 @@ MDEntries:
         MDEntryPx: 13157
         MDEntryTime: '212647000'
     -
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
         SecurityID: '2975'
         RptSeq: 7
@@ -196,8 +197,8 @@ MDEntries:
         MDEntryType: 'SIMULATED BUY PRICE'
         MDEntryPx: 13069
         MDEntryTime: '212647000'
-        MDUpdateAction: NEW
     -
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
         SecurityID: '2975'
         RptSeq: 8
@@ -230,6 +231,7 @@ MDEntries:
         MDEntryPx: 13171
         MDEntryTime: '212639000'
     -
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
         SecurityID: '22195'
         RptSeq: 7
@@ -237,8 +239,8 @@ MDEntries:
         MDEntryType: 'SIMULATED BUY PRICE'
         MDEntryPx: 13083
         MDEntryTime: '212639000'
-        MDUpdateAction: NEW
     -
+        MDUpdateAction: NEW
         SecurityIDSource: 'EXCHANGE SYMBOL'
         SecurityID: '22195'
         RptSeq: 8
@@ -414,7 +416,7 @@ MDEntries:
         SecurityID: '122779'
         Symbol: ZSQ6
         RptSeq: 553424
-
+...
 ```
 
 ## Notes
