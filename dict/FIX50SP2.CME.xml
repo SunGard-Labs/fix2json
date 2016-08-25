@@ -828,6 +828,7 @@
   </message>
   <message name='MarketDataIncrementalRefresh' msgcat='app' msgtype='X'>
    <component name='ApplicationSequenceControl' required='N' />
+   <field name='MatchEventIndicator' required='N'/>
    <field name='MDBookType' required='N' />
    <field name='MDFeedType' required='N' />
    <field name='TradeDate' required='N' />

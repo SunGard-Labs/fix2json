@@ -57,9 +57,9 @@ try {
             input = fs.createReadStream(filename);
         }
     } else {
-        input = process.stdin;
+		input = process.stdin;
     }
-
+	
     rd = readline.createInterface({
         input: input,
         output: process.stdout,
@@ -79,7 +79,8 @@ try {
 }
 
 function pluckGroup(tagArray, messageType, groupName, numInGroup) {
-    var groupAnchor;
+
+	var groupAnchor;
     var group = [];
     var member = {};
     var firstProp = undefined;
@@ -94,33 +95,43 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
     }
 
     while (tagArray.length > 0) {
-        var tag = tagArray.shift();
+
+		var tag = tagArray.shift();
         var key = tag.tag;
         var val = tag.val;
         var num = tag.num;
 
         var tagInGroup = _.contains(groupFields, key);
-        var type = TAGS[num].type ? TAGS[num].type : 'STRING';
-
-        if (idx > 0 && key === groupAnchor) {
-            member[key] = val;
+		var type;
+		
+		if (TAGS[num]) {
+	    	type = TAGS[num].type ? TAGS[num].type : 'STRING';
+		} else {
+			type = 'STRING';
+		}
+		
+        if (idx > 0 && key === groupAnchor) { // add current member to group, reset member
             group.push(_.clone(member));
             member = {};
-        } else if (type === 'NUMINGROUP') {
+            member[key] = val;
+        } else if (type === 'NUMINGROUP') { // recurse into new repeating group
             member[key] = val;
             if (val > 0) {
                 var newGroup = pluckGroup(tagArray, messageType, key, val);
                 member[key.substring('No'.length)] = newGroup;
             }
-        } else if (!tagInGroup) {
-            group.push(_.clone(member));
-            tagArray.push(tag); // put this guy back
+        } else if (!tagInGroup) { // we've reached the end of the group
+            group.push(_.clone(member)); // add the last processed member to the group
+            tagArray.push(tag); // put this guy back, he doens't belong here
             return group;
         } else {
-            member[key] = val;
+            member[key] = val; // tag is a member of an in-flight group
         }
+		
         idx++;
-    }
+
+	}
+	
 }
 
 function resolveFields(fieldArray) {
@@ -183,6 +194,7 @@ function extractFields(record) {
             });
         }
     }
+
     return fieldArray;
 }
 
@@ -259,7 +271,6 @@ function dictionaryGroups(dom) {
             for (o = 0; o < groupNames.length; o++) { // collapse fields into GROUPS index
                 GROUPS[messageName][groupNames[o]] = componentGroupFields[componentName][groupNames[o]];
             }
-
         }
     }
 }
