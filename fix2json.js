@@ -23,13 +23,11 @@ var yaml = false;
 var NUMERIC_TYPES = ['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROUP', 'LENGTH', 'PRICEOFFSET'];
 
 // Spec-compliance: see https://github.com/FIXTradingCommunity/fix-json-encoding
-// TODO: Create header, body and trailer objects for output JSON. Need to cache a map of field to section, i.e. CheckSum->Trailer.
-// TODO: Implement round-trip of json2fix from a spec-compliant object. Should be bit-identical each side of round-trip, with no semantic decay
-// TODO: Represent numeric values as strings (see: early versions of fix2json)
-// TODO: Remove manufactured group field names and store array under No* field directly
-// TODO: Remove mnemonic lookups of value data
-// TODO: Consider Output and Input strategy implementation
-// TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip
+// TODO: Create header, body and trailer objects for output JSON. Need to cache a map of field to section, i.e. CheckSum->Trailer. [Issue: https://github.com/SunGard-Labs/fix2json/issues/13]
+// TODO: Implement round-trip of json2fix from a spec-compliant object. Should be bit-identical each side of round-trip, with no semantic decay [Issue: https://github.com/SunGard-Labs/fix2json/issues/15]
+// TODO: Remove manufactured group field names and store array under No* field directly [Issue: https://github.com/SunGard-Labs/fix2json/issues/12]
+// TODO: Consider Output and Input strategy implementation [Issue: https://github.com/SunGard-Labs/fix2json/issues/14]
+// TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip [Issue: https://github.com/SunGard-Labs/fix2json/issues/11]
 
 checkParams();
 
@@ -180,11 +178,7 @@ function extractFields(record) {
         both[0].replace("\n", '').replace("\r", '');
         if (both[1] !== undefined && both[0] !== undefined) {
             var val = both[1];
-            if (TAGS[both[0]] && TAGS[both[0]].type) {
-                val = _.contains(NUMERIC_TYPES, TAGS[both[0]].type) ? Number(val) : val;
-            }
-            val = mnemonify(both[0], val);
-            fieldArray.push({
+             fieldArray.push({
                 tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
                 val: val,
                 num: both[0],
