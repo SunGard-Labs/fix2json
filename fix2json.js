@@ -44,6 +44,15 @@ groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
 groupXPath['1.1.0'] = '//fix/messages/message/group';
 
+// Spec-compliance: see https://github.com/FIXTradingCommunity/fix-json-encoding
+// TODO: Create header, body and trailer objects for output JSON. Need to cache a map of field to section, i.e. CheckSum->Trailer.
+// TODO: Implement round-trip of json2fix from a spec-compliant object. Should be bit-identical each side of round-trip, with no semantic decay
+// TODO: Represent numeric values as strings (see: early versions of fix2json)
+// TODO: Remove manufactured group field names and store array under No* field directly
+// TODO: Remove mnemonic lookups of value data
+// TODO: Consider Output and Input strategy implementation
+// TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip
+
 try {
 
     readDataDictionary(dictname);
