@@ -22,16 +22,14 @@ var rd = {};
 var yaml = false;
 var NUMERIC_TYPES = ['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROUP', 'LENGTH', 'PRICEOFFSET'];
 
-// some of these TODO's below are very speculative:
-//
-// TODO: decouple logic from file ingestion, but if this was a browser module, how would we package the dictionaries?
-// TODO: get dictionary management out of this module
-// TODO: XML merge for customizing data dictionaries with fragments
-// TODO: ability to hold multiple dictionaries in memory
-// TODO: autodetect FIX version from source data?
-// TODO: option to flatten groups?
-// TODO: emit pre and post processing events for each message processed
-// TODO: forward engineer JSON to FIX?  Would be pretty useful for browser UI's based on FIX dictionaries
+// Spec-compliance: see https://github.com/FIXTradingCommunity/fix-json-encoding
+// TODO: Create header, body and trailer objects for output JSON. Need to cache a map of field to section, i.e. CheckSum->Trailer.
+// TODO: Implement round-trip of json2fix from a spec-compliant object. Should be bit-identical each side of round-trip, with no semantic decay
+// TODO: Represent numeric values as strings (see: early versions of fix2json)
+// TODO: Remove manufactured group field names and store array under No* field directly
+// TODO: Remove mnemonic lookups of value data
+// TODO: Consider Output and Input strategy implementation
+// TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip
 
 checkParams();
 
@@ -43,15 +41,6 @@ groupXPath['5.0.0'] = '//fix/components/component/group';
 groupXPath['4.2.0'] = '//fix/messages/message/group';;
 groupXPath['4.4.0'] = '//fix/messages/message/group';
 groupXPath['1.1.0'] = '//fix/messages/message/group';
-
-// Spec-compliance: see https://github.com/FIXTradingCommunity/fix-json-encoding
-// TODO: Create header, body and trailer objects for output JSON. Need to cache a map of field to section, i.e. CheckSum->Trailer.
-// TODO: Implement round-trip of json2fix from a spec-compliant object. Should be bit-identical each side of round-trip, with no semantic decay
-// TODO: Represent numeric values as strings (see: early versions of fix2json)
-// TODO: Remove manufactured group field names and store array under No* field directly
-// TODO: Remove mnemonic lookups of value data
-// TODO: Consider Output and Input strategy implementation
-// TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip
 
 try {
 
