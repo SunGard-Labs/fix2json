@@ -28,6 +28,7 @@ var NUMERIC_TYPES = ['FLOAT', 'AMT', 'PRICE', 'QTY', 'INT', 'SEQNUM', 'NUMINGROU
 // TODO: Remove manufactured group field names and store array under No* field directly [Issue: https://github.com/SunGard-Labs/fix2json/issues/12]
 // TODO: Consider Output and Input strategy implementation [Issue: https://github.com/SunGard-Labs/fix2json/issues/14]
 // TODO: Spec says no dictionary should be necessary, then how to handle repeating groups + round-trip [Issue: https://github.com/SunGard-Labs/fix2json/issues/11]
+// TODO: As per spec, remove Checksum tag from output JSON
 
 checkParams();
 
@@ -114,7 +115,7 @@ function pluckGroup(tagArray, messageType, groupName, numInGroup) {
             member[key] = val;
             if (val > 0) {
                 var newGroup = pluckGroup(tagArray, messageType, key, val);
-                member[key.substring('No'.length)] = newGroup;
+                member[key] = newGroup;
             }
         } else if (!tagInGroup) { // we've reached the end of the group
             group.push(_.clone(member)); // add the last processed member to the group
@@ -151,8 +152,7 @@ function resolveFields(fieldArray) {
         var num = field.num;
         if (_.contains(Object.keys(refGroups), key)) {
             var newGroup = pluckGroup(fieldArray, msgTypeName.name, key, val);
-            targetObj[key] = val;
-            targetObj[key.substring('No'.length)] = newGroup;
+            targetObj[key] = newGroup;
         } else {
             targetObj[key] = val;
         }
@@ -178,12 +178,15 @@ function extractFields(record) {
         both[0].replace("\n", '').replace("\r", '');
         if (both[1] !== undefined && both[0] !== undefined) {
             var val = both[1];
-             fieldArray.push({
-                tag: TAGS[both[0]] ? TAGS[both[0]].name : both[0],
-                val: val,
-                num: both[0],
-                raw: both[1]
-            });
+			var tag = TAGS[both[0]] ? TAGS[both[0]].name : both[0];
+	//		if (tag !== 'CheckSum') {
+				fieldArray.push({
+					tag: tag,
+					val: val,
+                	num: both[0],
+               	 	raw: both[1]
+				});
+	//		}
         }
     }
 
