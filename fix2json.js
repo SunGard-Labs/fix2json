@@ -292,8 +292,8 @@ function messageNames(dom) {
 
     for (var i = 0; i < msgs.length; i++) {
         messages.push({
-            type: msgs[i].attributes[2].value,
-            name: msgs[i].attributes[0].value
+            type: msgs[i].attributes.getNamedItem('msgtype').value,
+            name: msgs[i].attributes.getNamedItem('name').value
         });
     }
 
