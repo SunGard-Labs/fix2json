@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <fix major='5' type='FIX' servicepack='2' minor='0'>
   <header />
   <messages>
@@ -921,6 +922,29 @@
 </message>
 <message name='SecurityDefinition' msgcat='app' msgtype='d'>
   <component name='ApplicationSequenceControl' required='N' />
+  <field name='Asset' required='N' />
+  <field name='DecayStartDate' required='N' />
+  <field name='DecayQuantity' required='N' />
+  <field name='SettlCurrency' required='N' />
+  <field name='MainFraction' required='N' />
+  <field name='SubFraction' required='N' />
+  <field name='PriceRatio' required='N' />
+  <field name='LowLimitPrice' required='N' /> 
+  <field name='HighLimitPrice' required='N' />
+  <field name='MinTradeVol' required='N' /> 
+  <field name='MaxTradeVol' required='N' />
+  <field name='SettlPriceType' required='N' />
+  <field name='MaxPriceVariation' required='N' />
+  <field name='TradingReferencePrice' required='N' />
+  <field name='OpenInterestQty' required='N' />
+  <field name='OriginalContractSize' required='N' />
+  <field name='ClearedVolume' required='N' />
+  <field name='LastUpdateTime' required='N' />
+  <field name='SecurityUpdateAction' required='N' />
+  <field name='NoRelatedInstruments' required='N' />
+  <field name='MatchAlgorithm' required='N' />
+  <field name='MarketSegmentID' required='N' />
+  <field name='UnderlyingProduct' required='N' />
   <field name='MatchEventIndicator' required='Y' />
   <field name='UserDefinedInstrument' required='N' />
   <field name='PriceDisplayFormat' required='N' />
@@ -2877,6 +2901,9 @@
     <field name='TransactTime' required='N' />
     <component name='TrdSessLstGrp' required='Y' />
   </group>
+  <field name='SecurityGroup' required='N' />
+  <field name='ProductComplex' required='N' />
+  <field name='MarketSegmentID' required='N' />
 </message>
 <message name='TradingSessionListRequest' msgcat='app' msgtype='BI'>
   <field name='TradSesReqID' required='Y' />
@@ -10116,7 +10143,7 @@
 <field number='5799' name='MatchEventIndicator' type='CHAR'/>
 <field number='5818' name='DecayQuantity' type='QTY'/>
 <field number='5819' name='DecayStartDate' type='LOCALMKTDATE'/>
-<field number='5849' name='OriginalContactSize' type='QTY'/>
+<field number='5849' name='OriginalContractSize' type='QTY'/>
 <field number='6350' name='TickRule' type='INT' />
 <field number='6937' name='Asset' type='STRING' />
 <field number='9633' name='ReferenceID' type='STRING' />
