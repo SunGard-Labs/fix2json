@@ -1,6 +1,10 @@
 fix2json
 =====
 
+# NOTE
+
+This repository is planned for public archival on 01 June 2023. As an alternative, please consider the [Market Data Transcoder](https://github.com/GoogleCloudPlatform/market-data-transcoder).
+
 ## About 
 
 fix2json is a command-line utility to present FIX(TV) protocol message files as JSON or YAML (fix2yaml).
